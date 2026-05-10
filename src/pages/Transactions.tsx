@@ -1,0 +1,416 @@
+import React, { useState, useEffect, useRef } from "react";
+import { 
+  Search, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Loader2,
+  CreditCard,
+  Plus,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Trash2,
+  Edit2,
+  Upload
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { supabase } from "../lib/supabase";
+import { format } from "date-fns";
+import FileService from "../lib/fileService";
+import PushNotificationService from "../lib/notifications";
+
+interface Transaction {
+  id: string;
+  name: string;
+  category: string;
+  date: string;
+  amount: number;
+  type: 'income' | 'expense';
+  status: 'completed' | 'pending';
+  catatan?: string;
+}
+
+const Transactions: React.FC = () => {
+  const [filter, setFilter] = useState('Semua');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dbTransactions, setDbTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragRef = useRef<HTMLDivElement>(null);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTx, setNewTx] = useState({
+    judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense' as any, date: new Date().toISOString().split('T')[0]
+  });
+
+  const kategoriPemasukan = ['Gaji', 'Bonus', 'Investasi', 'Lainnya'];
+  const kategoriPengeluaran = ['Makanan', 'Transport', 'Belanja', 'Kesehatan', 'Lainnya'];
+  const currentKategori = newTx.type === 'income' ? kategoriPemasukan : kategoriPengeluaran;
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  useEffect(() => {
+    // Setup drag and drop
+    if (dragRef.current) {
+      const handleDragOver = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      };
+
+      const handleDragLeave = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+      };
+
+      const handleDrop = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+        
+        if (e.dataTransfer?.files) {
+          const files = Array.from(e.dataTransfer.files);
+          files.forEach(file => handleFileImport(file));
+        }
+      };
+
+      dragRef.current.addEventListener('dragover', handleDragOver);
+      dragRef.current.addEventListener('dragleave', handleDragLeave);
+      dragRef.current.addEventListener('drop', handleDrop);
+
+      return () => {
+        if (dragRef.current) {
+          dragRef.current.removeEventListener('dragover', handleDragOver);
+          dragRef.current.removeEventListener('dragleave', handleDragLeave);
+          dragRef.current.removeEventListener('drop', handleDrop);
+        }
+      };
+    }
+  }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+      if (error) throw error;
+      const mapped: Transaction[] = (data || []).map((tx: any) => ({
+        id: tx.id, name: tx.description || "Tanpa Judul", category: tx.category, date: tx.date, amount: Number(tx.amount), type: tx.type, status: 'completed', catatan: tx.catatan
+      }));
+      setDbTransactions(mapped);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTransactions = dbTransactions.filter(tx => {
+    const matchesFilter = filter === 'Semua' || (filter === 'Pengeluaran' && tx.type === 'expense') || (filter === 'Pemasukan' && tx.type === 'income');
+    const matchesSearch = tx.name.toLowerCase().includes(searchQuery.toLowerCase()) || tx.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const totalIncome = dbTransactions.filter(tx => tx.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = dbTransactions.filter(tx => tx.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      const { error } = await supabase.from('transactions').insert([{
+        description: newTx.judul, catatan: newTx.catatan || null, category: newTx.category, amount: Number(newTx.amount), type: newTx.type, date: newTx.date, user_id: userId
+      }]);
+      if (error) throw error;
+      
+      // Send push notification
+      PushNotificationService.sendTransactionAlert(
+        newTx.type,
+        Number(newTx.amount),
+        newTx.category
+      );
+
+      setIsModalOpen(false);
+      setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0] });
+      fetchTransactions();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    if (!confirm("Hapus transaksi ini?")) return;
+    try {
+      const { error } = await supabase.from('transactions').delete().eq('id', id);
+      if (error) throw error;
+      fetchTransactions();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleExportTransactions = () => {
+    const exportData = filteredTransactions.map(tx => ({
+      'Tanggal': tx.date,
+      'Nama': tx.name,
+      'Kategori': tx.category,
+      'Tipe': tx.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+      'Jumlah': tx.amount,
+      'Catatan': tx.catatan || ''
+    }));
+
+    FileService.exportAsCSV(
+      exportData,
+      FileService.generateFilename('transactions_export', 'csv')
+    );
+
+    // Send notification
+    PushNotificationService.sendNotification('📥 Export Berhasil', {
+      body: `${exportData.length} transaksi telah diekspor ke CSV`
+    });
+  };
+
+  const handleFileImport = async (file: File) => {
+    try {
+      // Validate file
+      const validation = FileService.validateFile(file, {
+        maxSize: 5 * 1024 * 1024,
+        acceptedTypes: ['text/csv', 'application/json', '.csv', '.json']
+      });
+
+      if (!validation.valid) {
+        alert(validation.error);
+        return;
+      }
+
+      let importData: any[] = [];
+
+      if (file.name.endsWith('.csv')) {
+        importData = await FileService.parseCSV(file);
+      } else if (file.name.endsWith('.json')) {
+        const json = await FileService.parseJSON(file);
+        importData = Array.isArray(json) ? json : [json];
+      } else {
+        alert('Format file tidak didukung. Gunakan CSV atau JSON.');
+        return;
+      }
+
+      // Process imported data
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+
+      let successCount = 0;
+      for (const item of importData) {
+        try {
+          // Map imported data to transaction format
+          const amount = parseFloat(item.jumlah || item.amount || item.Jumlah || item.Amount || 0);
+          const description = item.nama || item.name || item.Nama || item.Name || 'Import';
+          const category = item.kategori || item.category || item.Kategori || item.Category || 'Lainnya';
+          const type = (item.tipe || item.type || item.Tipe || item.Type || 'expense').toLowerCase() === 'income' ? 'income' : 'expense';
+          const date = item.tanggal || item.date || item.Tanggal || item.Date || new Date().toISOString().split('T')[0];
+
+          const { error } = await supabase.from('transactions').insert([{
+            description,
+            category,
+            amount,
+            type,
+            date,
+            user_id: userId,
+            catatan: item.catatan || item.notes || item.Catatan || null
+          }]);
+
+          if (!error) successCount++;
+        } catch (err) {
+          console.error('Error importing single transaction:', err);
+        }
+      }
+
+      // Refresh transactions
+      fetchTransactions();
+
+      // Send notification
+      PushNotificationService.sendNotification('✅ Import Berhasil', {
+        body: `${successCount} dari ${importData.length} transaksi berhasil diimport`
+      });
+
+      alert(`Import berhasil! ${successCount} transaksi ditambahkan.`);
+    } catch (err: any) {
+      console.error('Import error:', err);
+      alert('Gagal mengimport file: ' + err.message);
+    }
+  };
+
+  return (
+    <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col z-10"
+            >
+              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">✨ Transaksi Baru</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-50 rounded-xl"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddTransaction} className="p-8 space-y-6">
+                <div className="p-1 bg-slate-100 rounded-2xl grid grid-cols-2 gap-1">
+                  <button type="button" onClick={() => setNewTx({...newTx, type: 'income', category: 'Gaji'})} className={`py-3 rounded-xl font-bold text-xs transition-all ${newTx.type === 'income' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>Pemasukan</button>
+                  <button type="button" onClick={() => setNewTx({...newTx, type: 'expense', category: 'Makanan'})} className={`py-3 rounded-xl font-bold text-xs transition-all ${newTx.type === 'expense' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500'}`}>Pengeluaran</button>
+                </div>
+                <div className="space-y-4">
+                  <input type="text" required value={newTx.judul} onChange={(e) => setNewTx({...newTx, judul: e.target.value})} className="input-field w-full" placeholder="Nama Transaksi" />
+                  <div className="relative">
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-violet-600">Rp</span>
+                    <input type="number" required value={newTx.amount} onChange={(e) => setNewTx({...newTx, amount: e.target.value})} className="input-field w-full pl-14 font-black text-xl" placeholder="0" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <select value={newTx.category} onChange={(e) => setNewTx({...newTx, category: e.target.value})} className="input-field w-full text-sm font-bold">{currentKategori.map(k => <option key={k} value={k}>{k}</option>)}</select>
+                    <input type="date" required value={newTx.date} onChange={(e) => setNewTx({...newTx, date: e.target.value})} className="input-field w-full text-sm font-bold" />
+                  </div>
+                </div>
+                <button type="submit" disabled={isSubmitting} className="btn-primary w-full">{isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
+          <p className="text-slate-500 font-medium mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleExportTransactions}
+            className="p-3 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:text-slate-900" 
+            title="Export transactions as CSV"
+          >
+            <Download size={20} />
+          </button>
+          <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 py-3"><Plus size={18} /> <span>Tambah</span></button>
+        </div>
+      </header>
+
+      {/* Drag & Drop Zone */}
+      <div
+        ref={dragRef}
+        className={`border-2 border-dashed rounded-3xl p-8 transition-all ${
+          isDragOver
+            ? 'border-violet-500 bg-violet-50'
+            : 'border-slate-200 bg-slate-50/50 hover:border-violet-300'
+        }`}
+      >
+        <div className="flex flex-col items-center justify-center gap-4 py-8">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
+            isDragOver ? 'bg-violet-200 text-violet-600' : 'bg-white text-slate-400'
+          }`}>
+            <Upload size={32} />
+          </div>
+          <div className="text-center">
+            <p className="font-black text-slate-900 text-lg">
+              {isDragOver ? 'Lepas file untuk diimport' : 'Drag & Drop file transaksi di sini'}
+            </p>
+            <p className="text-slate-500 text-sm mt-1">CSV atau JSON format • Max 5MB</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Masuk</p>
+          <p className="text-2xl font-black text-emerald-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome)}</p>
+        </div>
+        <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Keluar</p>
+          <p className="text-2xl font-black text-rose-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalExpense)}</p>
+        </div>
+        <div className="bg-violet-600 p-6 rounded-[32px] shadow-lg shadow-violet-600/20 text-white">
+          <p className="text-[10px] font-black text-violet-200 uppercase tracking-widest mb-1 text-center">Selisih Kas</p>
+          <p className="text-2xl font-black text-white tabular-nums text-center">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome - totalExpense)}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex items-center gap-2 p-1 bg-slate-100 border border-slate-200 rounded-2xl w-fit">
+          {["Semua", "Pengeluaran", "Pemasukan"].map((tab) => (
+            <button key={tab} onClick={() => setFilter(tab)} className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${filter === tab ? "bg-white text-violet-600 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>{tab}</button>
+          ))}
+        </div>
+        <div className="relative max-w-sm w-full group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-600 transition-colors" size={16} />
+          <input type="text" placeholder="Cari transaksi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-violet-600/5 focus:border-violet-600 focus:bg-white outline-none text-sm text-slate-900 transition-all" />
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-100 rounded-[40px] shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <Loader2 className="text-violet-500 animate-spin" size={40} />
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Menyelaraskan data...</p>
+          </div>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300"><CreditCard size={40} /></div>
+            <p className="text-slate-900 font-black text-lg">Kosong Melompong</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/50 border-b border-slate-100">
+                <tr>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Jumlah</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filteredTransactions.map((tx) => (
+                  <tr key={tx.id} className="group hover:bg-slate-50 transition-colors">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                          {tx.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{tx.name}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{format(new Date(tx.date), "dd MMM yyyy")}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">{tx.category}</span>
+                    </td>
+                    <td className="px-8 py-6 text-right font-black text-sm tabular-nums">
+                      <p className={tx.type === 'income' ? "text-emerald-500" : "text-slate-900"}>
+                        {tx.type === 'income' ? "+" : "-"}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(tx.amount)}
+                      </p>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center justify-center gap-2">
+                        <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Transactions;

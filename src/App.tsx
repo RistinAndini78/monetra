@@ -33,7 +33,11 @@ const App = () => {
     // Check for active admin session in localStorage
     const adminSession = localStorage.getItem("monetra_admin_session");
     if (adminSession) {
-      handleLogin(JSON.parse(adminSession));
+      try {
+        handleLogin(JSON.parse(adminSession));
+      } catch (e) {
+        localStorage.removeItem("monetra_admin_session");
+      }
     } else {
       // Check active Supabase session
       supabase.auth.getSession().then(({ data: { session } }) => {

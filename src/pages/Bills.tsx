@@ -130,6 +130,15 @@ const Bills: React.FC = () => {
       if (txError) throw txError;
 
       // 4. Update status tagihan jadi 'paid'
+      // 4. Send Notification
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from('notifications').insert([{
+        user_id: userData?.user?.id,
+        title: '✅ Tagihan Lunas!',
+        message: `Tagihan "${bill.name}" sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(bill.amount)} telah dibayar.`,
+        type: 'success'
+      }]);
+
       const { error: billError } = await supabase
         .from('bills')
         .update({ status: 'paid' })

@@ -137,6 +137,14 @@ const Transactions: React.FC = () => {
         newTx.category
       );
 
+      // Insert In-App Notification
+      await supabase.from('notifications').insert([{
+        user_id: userId,
+        title: newTx.type === 'income' ? '💰 Pemasukan Baru' : '💸 Pengeluaran Baru',
+        message: `Transaksi "${newTx.judul}" sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(newTx.amount))} telah dicatat.`,
+        type: 'success'
+      }]);
+
       setIsModalOpen(false);
       setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0] });
       fetchTransactions();

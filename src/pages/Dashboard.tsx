@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { supabase } from "../lib/supabase";
-import { format } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { id } from "date-fns/locale";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, 

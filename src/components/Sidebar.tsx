@@ -124,12 +124,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <p className="text-sm font-black text-slate-900 truncate">
                 {userName || 'Pengguna'}
               </p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${userRole === 'admin' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
-                   {userRole === 'admin' ? 'Administrator' : 'Premium User'}
-                 </p>
-              </div>
+              {userRole === 'admin' && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                    Administrator
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -26,59 +26,44 @@ Aplikasi Monetra telah dirancang untuk memenuhi 100% kriteria penilaian tugas:
 
 ---
 
-## 🖥️ PENJELASAN DETAIL ANTARMUKA (PER HALAMAN)
+## 🖥️ DESKRIPSI MENDALAM ANTARMUKA (USER JOURNEY)
 
 ### 👤 A. HALAMAN PENGGUNA (USER INTERFACE)
-Halaman ini adalah area utama bagi pengguna untuk mengelola keuangan pribadi mereka.
+Halaman pengguna dirancang dengan estetika *Premium Light Mode* yang mengutamakan kejelasan data dan kenyamanan visual. Setiap elemen memiliki animasi halus untuk memberikan kesan aplikasi yang "hidup".
 
-#### 1. Bagian Dashboard (Pusat Ringkasan)
-Dashboard dirancang untuk memberikan informasi tercepat tentang kondisi uang Anda.
-*   **Widget Saldo Utama:** Menampilkan angka "Total Saldo" yang dihitung secara otomatis (Uang Masuk dikurangi Uang Keluar).
-*   **Grafik Arus Kas (Trend Chart):** Grafik garis yang menunjukkan naik-turunnya keuangan Anda selama 6 bulan terakhir.
-*   **Donat Alokasi Dana:** Menunjukkan persentase pengeluaran Anda (misal: 40% untuk Makanan, 20% untuk Transport).
-*   **Logika Teknis:** Data diambil secara asinkron dari Supabase dan diperbarui secara instan tanpa refresh halaman.
+#### 1. Eksplorasi Dashboard (The Command Center)
+Saat pertama kali masuk, pengguna disambut oleh **Dashboard** yang merangkum seluruh kondisi finansial dalam satu layar. Di bagian atas, terdapat **Premium Balance Card** yang menampilkan total saldo dengan angka yang besar dan tegas; angka ini merupakan hasil kalkulasi otomatis yang membandingkan seluruh pemasukan dan pengeluaran secara *real-time*. 
 
-#### 2. Bagian Halaman Transaksi (Catatan Keuangan)
-Tempat pengguna mencatat setiap rupiah yang keluar atau masuk.
-*   **Tombol Tambah Transaksi:** Memunculkan formulir modern untuk mengisi judul, nominal, kategori, dan tanggal.
-*   **Fitur Import (Baru):** Pengguna bisa menarik (*Drag & Drop*) file laporan bank (CSV/JSON) langsung ke halaman ini untuk input massal.
-*   **Daftar Riwayat:** Tabel yang menampilkan detail transaksi lengkap dengan ikon indikator (Panah Hijau untuk Masuk, Panah Merah untuk Keluar).
-*   **Sistem Filter:** Pengguna bisa menyaring tampilan berdasarkan "Hanya Pemasukan" atau "Hanya Pengeluaran".
+Di sisi tengah, pengguna dapat melihat **Trend Arus Kas** yang digambarkan melalui grafik garis elegan. Grafik ini tidak statis; ia akan bergerak mengikuti fluktuasi uang Anda selama 6 bulan terakhir, memberikan gambaran apakah kekayaan Anda sedang tumbuh atau menurun. Di sampingnya, terdapat **Diagram Alokasi**, sebuah *Pie Chart* berwarna-warni yang secara visual langsung memberi tahu Anda ke mana perginya uang paling banyak, misalnya untuk "Makanan" atau "Hiburan", tanpa perlu membaca angka yang rumit.
 
-#### 3. Bagian Halaman Budget (Pengendali Anggaran)
-Berfungsi sebagai "rem" agar Anda tidak boros.
-*   **Progress Bar:** Menampilkan visualisasi batang warna. Jika sudah mendekati batas, warna akan berubah menjadi merah.
-*   **Periode Fleksibel:** Bisa mengatur budget secara harian, mingguan, atau bulanan.
-*   **Smart Calculation:** Sistem otomatis menghitung sisa budget Anda berdasarkan transaksi yang baru saja Anda buat di halaman Transaksi.
+#### 2. Manajemen Transaksi & Fitur Import Cerdas
+Halaman **Transaksi** adalah laboratorium utama data. Pengguna akan melihat daftar panjang aktivitas keuangan yang tersusun rapi secara kronologis. Setiap baris transaksi dilengkapi dengan ikon indikator warna: panah hijau meluncur ke atas untuk uang masuk, dan panah merah meluncur ke bawah untuk uang keluar.
 
-#### 4. Bagian Halaman Tagihan / Bills (Reminder)
-Mengelola daftar kewajiban pembayaran rutin.
-*   **Status Tagihan:** Menampilkan mana yang "Belum Dibayar" dan mana yang "Lunas".
-*   **Tombol Bayar Instan:** Dilengkapi proteksi *Interaction Lock* agar tidak terjadi pembayaran ganda.
-*   **Auto-Update:** Begitu diklik "Bayar", data otomatis berpindah ke halaman Transaksi sebagai pengeluaran baru.
+Yang paling istimewa adalah fitur **Drag & Drop Import**. Pengguna tidak perlu lagi mengetik transaksi satu per satu jika memiliki banyak data. Cukup ambil file laporan bank (CSV/JSON), lalu jatuhkan file tersebut ke area yang disediakan. Seketika, aplikasi akan membaca file tersebut, melakukan validasi data, dan memasukkannya ke dalam database Supabase. Seluruh proses ini berjalan di latar belakang dengan indikator *loading* yang halus, memberikan pengalaman pengguna yang sangat modern.
 
-#### 5. Bagian Header & Notifikasi (Pusat Aktivitas)
-Terletak di bagian atas aplikasi untuk informasi cepat.
-*   **Ikon Lonceng Interaktif:** Lonceng akan bergetar (bounce) jika ada notifikasi baru.
-*   **Dropdown Pesan:** Menampilkan 5 aktivitas terbaru (misal: "Tagihan Listrik Lunas" atau "Gaji Berhasil Dicatat").
-*   **Badget Angka:** Menunjukkan jumlah pesan yang belum Anda baca.
+#### 3. Pengendali Anggaran (Smart Budgeting)
+Halaman **Budget** bertindak sebagai pendamping cerdas yang membantu pengguna menahan diri dari pemborosan. Setiap kategori anggaran ditampilkan dalam bentuk kartu yang memiliki **Progress Bar**. Batang visual ini akan terisi perlahan seiring dengan bertambahnya transaksi Anda. 
+
+Jika pengeluaran masih dalam batas aman, batang akan berwarna biru atau hijau. Namun, saat pengeluaran mendekati 80% dari batas, sistem akan memberikan peringatan visual. Logika di balik halaman ini sangat kompleks: ia terus menerus melakukan sinkronisasi dengan halaman transaksi untuk memastikan bahwa setiap sen yang Anda belanjakan langsung tercermin pada sisa anggaran Anda saat itu juga.
+
+#### 4. Penagih & Pengingat (Bills Management)
+Halaman **Tagihan** dirancang untuk menghilangkan rasa cemas akan terlambat membayar. Pengguna dapat melihat kartu-kartu tagihan yang menonjolkan tanggal jatuh tempo. Terdapat tombol **"Bayar Sekarang"** yang memiliki sistem keamanan *Double-Click Protection*. 
+
+Sistem ini memastikan bahwa jika pengguna tidak sengaja menekan tombol dua kali, transaksi tetap hanya akan diproses satu kali. Setelah sukses, status tagihan akan berubah menjadi "Lunas" dengan animasi centang hijau yang memuaskan, dan secara otomatis sistem akan mengirimkan catatan pengeluaran ke buku besar transaksi pengguna.
+
+#### 5. Sistem Notifikasi & Lonceng Real-Time
+Header aplikasi dilengkapi dengan **Lonceng Notifikasi** yang aktif. Berbeda dengan lonceng biasa, lonceng ini memiliki nyawa; ia akan bergetar (*bounce*) secara otomatis setiap kali ada pesan masuk. Ketika diklik, sebuah jendela melayang (*dropdown*) akan muncul dengan animasi yang sangat halus. Di sana, pengguna dapat membaca pesan-pesan konfirmasi, seperti "Gaji Anda telah berhasil dicatat" atau "Tagihan Listrik telah dilunasi". Fitur ini memastikan pengguna selalu terhubung dengan setiap perubahan yang terjadi pada akun mereka.
 
 ---
 
 ### 🛡️ B. HALAMAN ADMINISTRATOR (ADMIN CONSOLE)
-Halaman rahasia yang hanya bisa diakses oleh akun dengan peran 'Admin'.
+Area ini didesain lebih minimalis dan fungsional, berfokus pada pengawasan data skala besar.
 
-#### 1. Bagian Admin Dashboard (Monitoring Sistem)
-*   **Total User:** Menampilkan jumlah total orang yang menggunakan aplikasi Monetra.
-*   **Total Perputaran Uang:** Melihat total aset yang dikelola oleh sistem Monetra secara keseluruhan.
-*   **Statistik Pertumbuhan:** Grafik yang menunjukkan pertumbuhan jumlah pengguna baru.
+#### 1. Monitoring & Statistik Global
+Di sini, admin disuguhkan pemandangan "Helikopter" dari seluruh sistem Monetra. Admin dapat melihat total pengguna yang terdaftar di seluruh dunia dan total volume uang yang mengalir di dalam sistem. Data ini disajikan dalam bentuk statistik pertumbuhan, memungkinkan admin untuk mengetahui tren popularitas aplikasi dari waktu ke waktu.
 
-#### 2. Bagian Kelola User (User Management)
-*   **Tabel Data User:** Menampilkan Nama, Email, dan Tanggal Bergabung setiap pengguna.
-*   **Kontrol Akun:** Admin dapat melihat siapa saja pengguna yang aktif dan memberikan status 'Premium' secara manual.
-
-#### 3. Bagian Laporan Global (System Reports)
-*   **Export Data:** Admin dapat mengunduh laporan aktivitas sistem dalam format dokumen untuk keperluan audit atau presentasi.
+#### 2. Manajemen Pengguna & Keamanan Sistem
+Halaman ini berisi tabel lengkap data identitas pengguna. Admin memiliki otoritas untuk memantau aktivitas, melihat level akun pengguna, dan memastikan bahwa sistem berjalan tanpa kendala teknis. Admin juga memiliki fitur ekspor laporan global yang memungkinkan data-data statistik sistem diubah menjadi dokumen untuk keperluan audit profesional.
 
 ---
 

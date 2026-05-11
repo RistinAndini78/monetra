@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,7 +11,8 @@ import {
   PieChart as PieIcon,
   Download,
   Info,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -26,70 +27,118 @@ import {
   Cell,
 } from "recharts";
 import { motion } from "motion/react";
+import { supabase } from "../lib/supabase";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { id } from "date-fns/locale";
 
 const Analysis: React.FC = () => {
-  const cashFlowData = [
-    { name: "Jan", income: 0, expenses: 0 },
-    { name: "Feb", income: 0, expenses: 0 },
-    { name: "Mar", income: 0, expenses: 0 },
-    { name: "Apr", income: 0, expenses: 0 },
-    { name: "Mei", income: 0, expenses: 0 },
-    { name: "Jun", income: 0, expenses: 0 },
-    { name: "Jul", income: 0, expenses: 0 },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [cashFlowData, setCashFlowData] = useState<any[]>([]);
+  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    savingsRate: 0
+  });
 
-  const categoryData = [
-    { name: "Belum Ada Data", value: 1, color: "#F1F5F9" },
-  ];
+  useEffect(() => {
+    fetchAnalysisData();
+  }, []);
 
-  const insights = [
-    {
-      title: "Data Belum Tersedia",
-      description: "Lakukan transaksi pertama Anda untuk mulai melihat analisis lonjakan pengeluaran.",
-      type: "info",
-      icon: <Info size={20} className="text-slate-400" />,
-      action: "Input Transaksi Baru"
-    },
-    {
-      title: "Menunggu Input",
-      description: "Monetra akan memberikan saran penghematan setelah mendeteksi pola belanja Anda.",
-      type: "info",
-      icon: <Sparkles size={20} className="text-slate-400" />,
-      action: "Pelajari Caranya"
-    },
-    {
-      title: "Skor Efisiensi",
-      description: "Skor kesehatan finansial Anda saat ini adalah 0/100 karena belum ada aktivitas.",
-      type: "info",
-      icon: <BarChart3 size={20} className="text-slate-400" />,
-      action: "Mulai Tracking"
+  const fetchAnalysisData = async () => {
+    try {
+      setLoading(true);
+      const { data: tx, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+
+      // 1. Process Monthly Cash Flow (Last 6 Months)
+      const months = Array.from({ length: 6 }).map((_, i) => {
+        const d = subMonths(new Date(), 5 - i);
+        return {
+          name: format(d, 'MMM'),
+          monthKey: format(d, 'yyyy-MM'),
+          income: 0,
+          expenses: 0
+        };
+      });
+
+      tx?.forEach(t => {
+        const mKey = t.date.substring(0, 7);
+        const month = months.find(m => m.monthKey === mKey);
+        if (month) {
+          if (t.type === 'income') month.income += Number(t.amount);
+          else month.expenses += Number(t.amount);
+        }
+      });
+      setCashFlowData(months);
+
+      // 2. Process Category Distribution (This Month)
+      const thisMonthKey = format(new Date(), 'yyyy-MM');
+      const categoryMap: any = {};
+      let totalExp = 0;
+      let totalInc = 0;
+
+      tx?.forEach(t => {
+        if (t.date.startsWith(thisMonthKey)) {
+          if (t.type === 'expense') {
+            categoryMap[t.category] = (categoryMap[t.category] || 0) + Number(t.amount);
+            totalExp += Number(t.amount);
+          } else {
+            totalInc += Number(t.amount);
+          }
+        }
+      });
+
+      const colors = ['#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B', '#64748B'];
+      const processedCategories = Object.keys(categoryMap).map((name, i) => ({
+        name,
+        value: categoryMap[name],
+        color: colors[i % colors.length]
+      }));
+
+      setCategoryData(processedCategories.length > 0 ? processedCategories : [{ name: "Belum Ada", value: 1, color: "#F1F5F9" }]);
+      
+      setStats({
+        totalIncome: totalInc,
+        totalExpenses: totalExp,
+        savingsRate: totalInc > 0 ? Math.round(((totalInc - totalExp) / totalInc) * 100) : 0
+      });
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const formatCurrencyShort = (value: number) => {
-    return `Rp${value}`;
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center text-slate-400">
+        <Loader2 className="animate-spin mb-4" size={40} />
+        <p className="font-black uppercase tracking-[0.3em] text-[10px]">Menganalisis Data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
+    <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Analisis Keuangan</h2>
-          <p className="text-slate-400 font-medium tracking-tight">Data analisis akan tampil secara otomatis setelah Anda menambahkan transaksi.</p>
+          <p className="text-slate-400 font-medium tracking-tight">Wawasan mendalam tentang pola finansial Anda.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="bg-white border border-slate-100 rounded-2xl p-1 flex items-center gap-2 shadow-sm">
-             <button className="px-4 py-2 text-xs font-black bg-violet-600 text-white rounded-xl shadow-lg shadow-violet-600/20">Bulanan</button>
-             <button className="px-4 py-2 text-xs font-black text-slate-400 hover:text-slate-900 transition-colors">Triwulanan</button>
-             <button className="px-4 py-2 text-xs font-black text-slate-400 hover:text-slate-900 transition-colors">Tahunan</button>
+             <button className="px-4 py-2 text-xs font-black bg-violet-600 text-white rounded-xl shadow-lg shadow-violet-600/20">6 Bulan Terakhir</button>
           </div>
-          <button className="bg-white border border-slate-100 p-3 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
-             <Filter size={20} />
-          </button>
         </div>
       </header>
 
@@ -100,102 +149,94 @@ const Analysis: React.FC = () => {
            <div className="flex items-center justify-between mb-10">
               <div>
                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Tren Arus Kas</h3>
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Menunggu Data Transaksi</p>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Pemasukan vs Pengeluaran</p>
               </div>
            </div>
            
-           <div className="h-[350px] w-full flex items-center justify-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-100">
-              <div className="text-center">
-                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
-                    <TrendingUp size={32} />
-                 </div>
-                 <p className="text-sm font-black text-slate-400">Belum ada grafik untuk ditampilkan</p>
-              </div>
+           <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={cashFlowData}>
+                  <defs>
+                    <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10, fontWeight: 900}} />
+                  <YAxis hide />
+                  <Tooltip 
+                    contentStyle={{borderRadius: '24px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                    itemStyle={{fontSize: '12px', fontWeight: 900}}
+                  />
+                  <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={4} fillOpacity={1} fill="url(#colorInc)" />
+                  <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={4} fillOpacity={1} fill="url(#colorExp)" />
+                </AreaChart>
+              </ResponsiveContainer>
            </div>
         </div>
 
         {/* Expense Category Donut */}
-        <div className="xl:col-span-4 bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between">
-           <div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight mb-8">Kategori Pengeluaran</h3>
-              <div className="h-[250px] w-full relative">
-                 <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                       <Pie
-                          data={categoryData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={70}
-                          outerRadius={90}
-                          paddingAngle={0}
-                          dataKey="value"
-                       >
-                          {categoryData.map((entry, index) => (
-                             <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                          ))}
-                       </Pie>
-                    </PieChart>
-                 </ResponsiveContainer>
-                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Total</span>
-                    <span className="text-2xl font-black text-slate-900">Rp 0</span>
-                 </div>
+        <div className="xl:col-span-4 bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm flex flex-col">
+           <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Kategori</h3>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Bulan Ini</p>
+           
+           <div className="h-[250px] w-full relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pengeluaran</span>
+                <span className="text-xl font-black text-slate-900">{formatCurrency(stats.totalExpenses)}</span>
               </div>
            </div>
 
-           <div className="space-y-4 pt-10">
-              <div className="text-center py-4">
-                 <p className="text-xs font-bold text-slate-400 italic">Belum ada kategori terdeteksi</p>
-              </div>
+           <div className="space-y-3 mt-8">
+              {categoryData.filter(c => c.name !== "Belum Ada").map((cat, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                    <span className="text-xs font-black text-slate-700">{cat.name}</span>
+                  </div>
+                  <span className="text-xs font-black text-slate-900">{formatCurrency(cat.value)}</span>
+                </div>
+              ))}
            </div>
         </div>
       </div>
 
-
-
-      {/* Monthly Data Table */}
-      <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden mt-10">
-         <div className="p-10 border-b border-slate-50 flex items-center justify-between">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Performa Keuangan</h3>
-            <button disabled className="flex items-center gap-2 text-[10px] font-black text-slate-300 uppercase tracking-widest cursor-not-allowed">
-               <Download size={14} />
-               Ekspor CSV
-            </button>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+         <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100">
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Total Pemasukan</p>
+            <h4 className="text-3xl font-black text-emerald-900">{formatCurrency(stats.totalIncome)}</h4>
          </div>
-         <div className="overflow-x-auto">
-            <table className="w-full text-left">
-               <thead>
-                  <tr className="bg-slate-50">
-                     <th className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bulan</th>
-                     <th className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Penghasilan</th>
-                     <th className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengeluaran</th>
-                     <th className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tabungan</th>
-                     <th className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Efisiensi</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-50">
-                  {[
-                     { month: "Mei 2026", gain: "Rp 0", loss: "Rp 0", net: "Rp 0", score: "0%" },
-                     { month: "April 2026", gain: "Rp 0", loss: "Rp 0", net: "Rp 0", score: "0%" },
-                     { month: "Maret 2026", gain: "Rp 0", loss: "Rp 0", net: "Rp 0", score: "0%" },
-                  ].map((row, i) => (
-                     <tr key={i} className="hover:bg-slate-50 transition-colors group cursor-default">
-                        <td className="px-10 py-6 text-sm font-black text-slate-900">{row.month}</td>
-                        <td className="px-10 py-6 text-sm font-bold text-slate-400">{row.gain}</td>
-                        <td className="px-10 py-6 text-sm font-bold text-slate-400">{row.loss}</td>
-                        <td className="px-10 py-6 text-sm font-black text-slate-400">{row.net}</td>
-                        <td className="px-10 py-6">
-                           <div className="flex items-center gap-3">
-                              <div className="flex-1 max-w-[80px] h-2 bg-slate-100 rounded-full overflow-hidden">
-                                 <div className="h-full bg-slate-200 rounded-full" style={{ width: row.score }} />
-                              </div>
-                              <span className="text-[10px] font-black text-slate-300">{row.score}</span>
-                           </div>
-                        </td>
-                     </tr>
-                  ))}
-               </tbody>
-            </table>
+         <div className="bg-rose-50 p-8 rounded-[32px] border border-rose-100">
+            <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4">Total Pengeluaran</p>
+            <h4 className="text-3xl font-black text-rose-900">{formatCurrency(stats.totalExpenses)}</h4>
+         </div>
+         <div className="bg-violet-50 p-8 rounded-[32px] border border-violet-100">
+            <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-4">Tingkat Tabungan</p>
+            <h4 className="text-3xl font-black text-violet-900">{stats.savingsRate}%</h4>
          </div>
       </div>
     </div>
@@ -203,3 +244,4 @@ const Analysis: React.FC = () => {
 };
 
 export default Analysis;
+

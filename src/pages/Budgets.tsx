@@ -24,9 +24,10 @@ interface Budget {
   id: string;
   category: string;
   amount: number;
-  spent: number; // Kita akan hitung ini secara dinamis
+  spent: number;
   month: number;
   year: number;
+  period: 'Harian' | 'Mingguan' | 'Bulanan';
   user_id: string;
 }
 
@@ -40,6 +41,7 @@ const Budgets: React.FC = () => {
   const [newBudget, setNewBudget] = useState({
     category: 'Makanan',
     amount: '',
+    period: 'Bulanan' as 'Harian' | 'Mingguan' | 'Bulanan',
   });
 
   const categories = [
@@ -53,7 +55,6 @@ const Budgets: React.FC = () => {
   useEffect(() => {
     fetchBudgetsWithSpending();
 
-    // Subscribe ke transaksi agar budget update otomatis jika ada transaksi baru
     const channel = supabase
       .channel('budget-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
@@ -62,24 +63,37 @@ const Budgets: React.FC = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [activeTab]); // Re-fetch when tab changes
 
   const fetchBudgetsWithSpending = async () => {
     try {
       setLoading(true);
       
-      // 1. Ambil semua budget
       const { data: budgetData, error: bError } = await supabase
         .from('budgets')
         .select('*')
+        .eq('period', activeTab) // Filter by period
         .order('category', { ascending: true });
 
       if (bError) throw bError;
 
-      // 2. Ambil semua transaksi pengeluaran bulan ini
+      // Calculate time range based on activeTab
       const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+      let firstDay, lastDay;
+
+      if (activeTab === 'Bulanan') {
+        firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+      } else if (activeTab === 'Mingguan') {
+        const start = new Date(now);
+        start.setDate(now.getDate() - now.getDay());
+        firstDay = start.toISOString();
+        lastDay = new Date().toISOString();
+      } else {
+        // Harian
+        firstDay = new Date(now.setHours(0,0,0,0)).toISOString();
+        lastDay = new Date(now.setHours(23,59,59,999)).toISOString();
+      }
 
       const { data: txData, error: tError } = await supabase
         .from('transactions')
@@ -90,7 +104,6 @@ const Budgets: React.FC = () => {
 
       if (tError) throw tError;
 
-      // 3. Gabungkan data: hitung spending per kategori
       const spendingMap = (txData || []).reduce((acc: any, curr) => {
         acc[curr.category] = (acc[curr.category] || 0) + Number(curr.amount);
         return acc;
@@ -121,6 +134,7 @@ const Budgets: React.FC = () => {
         {
           category: newBudget.category,
           amount: Number(newBudget.amount),
+          period: newBudget.period,
           month: now.getMonth() + 1,
           year: now.getFullYear(),
           user_id: userId
@@ -160,7 +174,7 @@ const Budgets: React.FC = () => {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Anggaran / Budget</h2>
-          <p className="text-slate-500 font-medium mt-1">Pantau sisa anggaran Anda secara otomatis.</p>
+          <p className="text-slate-500 font-medium mt-1">Pantau sisa anggaran Anda sesuai periode.</p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-3">
           <Plus size={20} />
@@ -168,7 +182,7 @@ const Budgets: React.FC = () => {
         </button>
       </header>
 
-      {/* Period Tabs (UI Only for now) */}
+      {/* Period Tabs */}
       <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-[24px] w-fit border border-slate-200">
         {['Harian', 'Mingguan', 'Bulanan'].map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab as any)} className={`px-6 py-2.5 rounded-[18px] text-xs font-black transition-all ${activeTab === tab ? "bg-white text-violet-600 shadow-sm border border-slate-200" : "text-slate-500 hover:text-slate-900"}`}>{tab}</button>
@@ -180,7 +194,7 @@ const Budgets: React.FC = () => {
           <div className="bg-white border border-slate-100 p-8 sm:p-10 rounded-[40px] shadow-sm relative overflow-hidden">
              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pemakaian Anggaran Bulanan</p>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pemakaian Anggaran {activeTab}</p>
                    <h3 className="text-4xl font-black text-slate-900 mb-4">{formatCurrency(totalSpent)}</h3>
                    <p className="text-slate-400 text-sm font-bold">Terpakai dari {formatCurrency(totalBudget)}</p>
                 </div>
@@ -200,7 +214,7 @@ const Budgets: React.FC = () => {
             {loading ? (
               <div className="col-span-full py-10 flex flex-col items-center gap-3 text-slate-400"><Loader2 className="animate-spin" size={24} /><p className="text-[10px] font-black uppercase tracking-widest">Sinkronisasi...</p></div>
             ) : budgets.length === 0 ? (
-              <div className="col-span-full py-16 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center gap-4 text-center"><p className="text-slate-400 font-bold text-sm">Belum ada budget.</p></div>
+              <div className="col-span-full py-16 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center gap-4 text-center"><p className="text-slate-400 font-bold text-sm">Belum ada budget {activeTab.toLowerCase()}.</p></div>
             ) : (
               budgets.map((budget, i) => {
                 const progress = (budget.spent / budget.amount) * 100;
@@ -216,7 +230,7 @@ const Budgets: React.FC = () => {
                         <button onClick={() => handleDeleteBudget(budget.id)} className="p-2 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
                      </div>
                      <h4 className="font-black text-slate-900 text-lg mb-1">{budget.category}</h4>
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Sisa: {formatCurrency(budget.amount - budget.spent)}</p>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Sisa {activeTab}: {formatCurrency(budget.amount - budget.spent)}</p>
                      <div className="space-y-3">
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                            <span className={progress > 100 ? "text-rose-500" : "text-slate-900"}>{formatCurrency(budget.spent)}</span>
@@ -270,7 +284,15 @@ const Budgets: React.FC = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Batas Nominal (Bulan Ini)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Periode</label>
+                    <select value={newBudget.period} onChange={(e) => setNewBudget({...newBudget, period: e.target.value as any})} className="input-field w-full text-sm font-bold">
+                      <option value="Harian">Harian</option>
+                      <option value="Mingguan">Mingguan</option>
+                      <option value="Bulanan">Bulanan</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Batas Nominal</label>
                     <input type="number" required value={newBudget.amount} onChange={(e) => setNewBudget({...newBudget, amount: e.target.value})} className="input-field w-full font-black text-xl" placeholder="0" />
                   </div>
                 </div>

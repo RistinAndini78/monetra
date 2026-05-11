@@ -26,43 +26,64 @@ Aplikasi Monetra telah dirancang untuk memenuhi 100% kriteria penilaian tugas:
 
 ---
 
-## 📖 ANALISIS TEKNIS PER HALAMAN
+## 🖥️ PENJELASAN DETAIL ANTARMUKA (PER HALAMAN)
 
-### 1. Dashboard (Pusat Kendali)
-Halaman ini adalah "otak" visual aplikasi.
-*   **Logic:** Menghitung saldo bersih secara asinkron dari tabel `transactions`.
-*   **Visual:** Menggunakan **Recharts** untuk grafik tren dan distribusi kategori.
-*   **Real-time:** Menggunakan `supabase.channel` untuk memperbarui angka saldo setiap kali ada transaksi baru di perangkat mana pun.
+### 👤 A. HALAMAN PENGGUNA (USER INTERFACE)
+Halaman ini adalah area utama bagi pengguna untuk mengelola keuangan pribadi mereka.
 
-### 2. Transaksi (Data Center)
-Halaman utama untuk manajemen arus kas.
-*   **Inovasi Baru:** Fitur **Import File** (CSV/JSON) yang memudahkan pengguna memindahkan data bank ke Monetra.
-*   **Keamanan:** Dilengkapi sistem validasi agar tidak ada data kosong atau nominal negatif.
+#### 1. Bagian Dashboard (Pusat Ringkasan)
+Dashboard dirancang untuk memberikan informasi tercepat tentang kondisi uang Anda.
+*   **Widget Saldo Utama:** Menampilkan angka "Total Saldo" yang dihitung secara otomatis (Uang Masuk dikurangi Uang Keluar).
+*   **Grafik Arus Kas (Trend Chart):** Grafik garis yang menunjukkan naik-turunnya keuangan Anda selama 6 bulan terakhir.
+*   **Donat Alokasi Dana:** Menunjukkan persentase pengeluaran Anda (misal: 40% untuk Makanan, 20% untuk Transport).
+*   **Logika Teknis:** Data diambil secara asinkron dari Supabase dan diperbarui secara instan tanpa refresh halaman.
 
-### 3. Budget (Perencanaan)
-Sistem pengawasan pengeluaran.
-*   **Logic:** Melakukan kalkulasi dinamis antara batas budget yang ditentukan dengan realita pengeluaran di kategori yang sama.
-*   **Notifikasi:** Jika pengeluaran mendekati 80%, sistem akan memicu peringatan.
+#### 2. Bagian Halaman Transaksi (Catatan Keuangan)
+Tempat pengguna mencatat setiap rupiah yang keluar atau masuk.
+*   **Tombol Tambah Transaksi:** Memunculkan formulir modern untuk mengisi judul, nominal, kategori, dan tanggal.
+*   **Fitur Import (Baru):** Pengguna bisa menarik (*Drag & Drop*) file laporan bank (CSV/JSON) langsung ke halaman ini untuk input massal.
+*   **Daftar Riwayat:** Tabel yang menampilkan detail transaksi lengkap dengan ikon indikator (Panah Hijau untuk Masuk, Panah Merah untuk Keluar).
+*   **Sistem Filter:** Pengguna bisa menyaring tampilan berdasarkan "Hanya Pemasukan" atau "Hanya Pengeluaran".
 
-### 4. Tagihan / Bills (Manajemen Utang)
-*   **Logic:** Menampilkan daftar tagihan yang harus dibayar.
-*   **Double-Click Protection:** Mencegah pembayaran ganda akibat klik yang tidak sengaja.
-*   **Auto-Transaction:** Begitu tagihan ditandai "Lunas", sistem otomatis membuat catatan pengeluaran di tabel transaksi.
+#### 3. Bagian Halaman Budget (Pengendali Anggaran)
+Berfungsi sebagai "rem" agar Anda tidak boros.
+*   **Progress Bar:** Menampilkan visualisasi batang warna. Jika sudah mendekati batas, warna akan berubah menjadi merah.
+*   **Periode Fleksibel:** Bisa mengatur budget secara harian, mingguan, atau bulanan.
+*   **Smart Calculation:** Sistem otomatis menghitung sisa budget Anda berdasarkan transaksi yang baru saja Anda buat di halaman Transaksi.
 
-### 5. Notifikasi (Pusat Informasi) - *Baru!*
-Pusat pemberitahuan real-time untuk aktivitas akun.
-*   **Logic:** Menyimpan setiap pesan di tabel `notifications`.
-*   **UI:** Dropdown interaktif di Header dengan animasi **Framer Motion**.
-*   **Real-time:** Lonceng akan bergetar dan muncul angka merah seketika saat ada aktivitas baru.
+#### 4. Bagian Halaman Tagihan / Bills (Reminder)
+Mengelola daftar kewajiban pembayaran rutin.
+*   **Status Tagihan:** Menampilkan mana yang "Belum Dibayar" dan mana yang "Lunas".
+*   **Tombol Bayar Instan:** Dilengkapi proteksi *Interaction Lock* agar tidak terjadi pembayaran ganda.
+*   **Auto-Update:** Begitu diklik "Bayar", data otomatis berpindah ke halaman Transaksi sebagai pengeluaran baru.
 
-### 6. Auth (Keamanan & Biometrik) - *Baru!*
-Pintu masuk sistem yang sangat aman.
-*   **Mobile Feature:** Tombol **"Masuk dengan Sidik Jari"** muncul otomatis di perangkat Android.
-*   **Logic:** Menggunakan token identitas hardware untuk login otomatis ke Supabase tanpa perlu mengetik ulang email/password.
+#### 5. Bagian Header & Notifikasi (Pusat Aktivitas)
+Terletak di bagian atas aplikasi untuk informasi cepat.
+*   **Ikon Lonceng Interaktif:** Lonceng akan bergetar (bounce) jika ada notifikasi baru.
+*   **Dropdown Pesan:** Menampilkan 5 aktivitas terbaru (misal: "Tagihan Listrik Lunas" atau "Gaji Berhasil Dicatat").
+*   **Badget Angka:** Menunjukkan jumlah pesan yang belum Anda baca.
+
+---
+
+### 🛡️ B. HALAMAN ADMINISTRATOR (ADMIN CONSOLE)
+Halaman rahasia yang hanya bisa diakses oleh akun dengan peran 'Admin'.
+
+#### 1. Bagian Admin Dashboard (Monitoring Sistem)
+*   **Total User:** Menampilkan jumlah total orang yang menggunakan aplikasi Monetra.
+*   **Total Perputaran Uang:** Melihat total aset yang dikelola oleh sistem Monetra secara keseluruhan.
+*   **Statistik Pertumbuhan:** Grafik yang menunjukkan pertumbuhan jumlah pengguna baru.
+
+#### 2. Bagian Kelola User (User Management)
+*   **Tabel Data User:** Menampilkan Nama, Email, dan Tanggal Bergabung setiap pengguna.
+*   **Kontrol Akun:** Admin dapat melihat siapa saja pengguna yang aktif dan memberikan status 'Premium' secara manual.
+
+#### 3. Bagian Laporan Global (System Reports)
+*   **Export Data:** Admin dapat mengunduh laporan aktivitas sistem dalam format dokumen untuk keperluan audit atau presentasi.
 
 ---
 
 ## 🛠️ ARSITEKTUR TEKNOLOGI
+Aplikasi ini menggunakan kombinasi teknologi modern:
 
 | Teknologi | Fungsi | Alasan Pemilihan |
 | :--- | :--- | :--- |

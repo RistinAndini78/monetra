@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet } from "lucide-react";
-
+import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet, Fingerprint } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { Capacitor } from "@capacitor/core";
+import { NativeBiometric } from "capacitor-native-biometric";
 
 interface AuthProps {
   onLogin: (user: any) => void;
@@ -15,6 +16,70 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const result = await NativeBiometric.isAvailable();
+        if (result.isAvailable) {
+          setIsBiometricAvailable(true);
+          // Auto trigger biometric if credentials saved
+          const hasCredentials = await NativeBiometric.getCredentials({
+             server: "monetra.id",
+          }).then(() => true).catch(() => false);
+          
+          if (hasCredentials) {
+             // Optional: handle auto-login
+          }
+        }
+      } catch (err) {
+        console.error("Biometric not available", err);
+      }
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      setError("");
+      setLoading(true);
+
+      const result = await NativeBiometric.verifyIdentity({
+        reason: "Masuk ke Monetra",
+        title: "Otentikasi Biometrik",
+        subtitle: "Gunakan sidik jari atau FaceID Anda",
+        description: "Verifikasi identitas Anda untuk melanjutkan",
+      }).then(() => true).catch(() => false);
+
+      if (result) {
+        const credentials = await NativeBiometric.getCredentials({
+          server: "monetra.id",
+        });
+
+        const { data, error: loginError } = await supabase.auth.signInWithPassword({
+          email: credentials.username,
+          password: credentials.password,
+        });
+
+        if (loginError) throw loginError;
+
+        onLogin({
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata.name || data.user.email,
+          role: data.user.user_metadata.role || "user",
+        });
+      }
+    } catch (err: any) {
+      setError("Biometrik gagal atau belum didaftarkan. Silakan login manual dulu.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setError("");
@@ -40,19 +105,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       if (isLogin) {
-        // Admin Bypass for Demo
-        if (email === "admin@monetra.id" && password === "admin123") {
-          const adminUser = {
-            id: "admin-id",
-            email: "admin@monetra.id",
-            name: "Ristin Admin",
-            role: "admin",
-          };
-          localStorage.setItem("monetra_admin_session", JSON.stringify(adminUser));
-          onLogin(adminUser);
-          return;
-        }
-
         // Login with Supabase
         const { data, error: loginError } = await supabase.auth.signInWithPassword({
           email,
@@ -61,6 +113,16 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
         if (loginError) throw loginError;
         
+        // Save credentials for biometric if on mobile
+        if (Capacitor.isNativePlatform() && isBiometricAvailable) {
+           await NativeBiometric.setCredentials({
+              username: email,
+              password: password,
+              server: "monetra.id",
+              appName: "Monetra"
+           });
+        }
+
         onLogin({
           id: data.user.id,
           email: data.user.email,
@@ -210,14 +272,28 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-violet-200 transition-all flex items-center justify-center gap-2 group active:scale-[0.98] disabled:opacity-70"
-              >
-                {loading ? "Memproses..." : isLogin ? "Masuk" : "Daftar Akun"}
-                {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
-              </button>
+              <div className="grid grid-cols-1 gap-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-violet-200 transition-all flex items-center justify-center gap-2 group active:scale-[0.98] disabled:opacity-70"
+                >
+                  {loading ? "Memproses..." : isLogin ? "Masuk" : "Daftar Akun"}
+                  {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
+                </button>
+
+                {isLogin && isBiometricAvailable && (
+                  <button
+                    type="button"
+                    onClick={handleBiometricLogin}
+                    disabled={loading}
+                    className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                  >
+                    <Fingerprint size={20} />
+                    Masuk dengan Sidik Jari
+                  </button>
+                )}
+              </div>
             </form>
 
             <div className="mt-6">
@@ -264,3 +340,4 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 };
 
 export default Auth;
+

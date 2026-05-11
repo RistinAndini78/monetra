@@ -96,6 +96,42 @@ const Bills: React.FC = () => {
     }
   };
 
+  const handlePayBill = async (bill: Bill) => {
+    if (bill.status === 'paid') return;
+    if (!confirm(`Bayar tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)}?`)) return;
+
+    try {
+      setIsSubmitting(true);
+      
+      // 1. Buat transaksi pengeluaran otomatis
+      const { error: txError } = await supabase.from('transactions').insert([{
+        type: 'expense',
+        amount: bill.amount,
+        category: bill.category,
+        date: new Date().toISOString().split('T')[0],
+        description: `Pembayaran Tagihan: ${bill.name}`,
+        user_id: bill.user_id
+      }]);
+
+      if (txError) throw txError;
+
+      // 2. Update status tagihan jadi 'paid'
+      const { error: billError } = await supabase
+        .from('bills')
+        .update({ status: 'paid' })
+        .eq('id', bill.id);
+
+      if (billError) throw billError;
+
+      alert("Tagihan berhasil dibayar dan tercatat di transaksi!");
+      fetchBills();
+    } catch (err: any) {
+      alert("Gagal membayar tagihan: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDeleteBill = async (id: string) => {
     if (!confirm("Hapus tagihan ini?")) return;
     try {
@@ -111,7 +147,7 @@ const Bills: React.FC = () => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
-  const totalKewajiban = bills.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalKewajiban = bills.filter(b => b.status !== 'paid').reduce((acc, curr) => acc + curr.amount, 0);
   const upcomingCount = bills.filter(b => b.status === 'upcoming').length;
 
   return (
@@ -135,9 +171,9 @@ const Bills: React.FC = () => {
       {/* Ringkasan Statistik */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { label: "Total Kewajiban", value: formatCurrency(totalKewajiban), trend: `${bills.length} Tagihan Terdaftar`, color: "text-slate-900" },
+          { label: "Sisa Kewajiban", value: formatCurrency(totalKewajiban), trend: `${bills.filter(b => b.status !== 'paid').length} Belum Dibayar`, color: "text-slate-900" },
           { label: "Tagihan Mendatang", value: `${upcomingCount} Tagihan`, trend: "Perlu disiapkan", color: "text-rose-500" },
-          { label: "Status Database", value: loading ? "Loading..." : "Terhubung", trend: "Sinkronisasi Real-time", color: "text-emerald-500" },
+          { label: "Sudah Dibayar", value: formatCurrency(bills.filter(b => b.status === 'paid').reduce((a, c) => a + c.amount, 0)), trend: "Bulan ini", color: "text-emerald-500" },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px]">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
@@ -166,24 +202,37 @@ const Bills: React.FC = () => {
            ) : (
              <div className="space-y-4">
                 {bills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-3xl border border-slate-100 hover:border-violet-100 transition-all group">
+                  <div key={bill.id} className={`flex items-center justify-between p-6 rounded-3xl border transition-all group ${bill.status === 'paid' ? 'bg-emerald-50/30 border-emerald-100 opacity-80' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
                      <div className="flex items-center gap-6">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-violet-600 shadow-sm">
-                           <CreditCard size={20} />
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-emerald-500 text-white' : 'bg-white text-violet-600'}`}>
+                           {bill.status === 'paid' ? <CheckCircle2 size={20} /> : <CreditCard size={20} />}
                         </div>
                         <div>
-                           <h4 className="font-black text-slate-900">{bill.name}</h4>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tempo: {format(parseISO(bill.due_date), 'dd MMM yyyy')}</p>
+                           <h4 className={`font-black ${bill.status === 'paid' ? 'text-emerald-900 line-through' : 'text-slate-900'}`}>{bill.name}</h4>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                             {bill.status === 'paid' ? 'Lunas' : `Tempo: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
+                           </p>
                         </div>
                      </div>
-                     <div className="flex items-center gap-8">
+                     <div className="flex items-center gap-6 sm:gap-10">
                         <div className="text-right">
-                           <p className="font-black text-slate-900">{formatCurrency(bill.amount)}</p>
-                           <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{bill.category}</p>
+                           <p className={`font-black ${bill.status === 'paid' ? 'text-emerald-600' : 'text-slate-900'}`}>{formatCurrency(bill.amount)}</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
                         </div>
-                        <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
-                           <Trash2 size={18} />
-                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                           {bill.status !== 'paid' && (
+                             <button 
+                               onClick={() => handlePayBill(bill)}
+                               className="px-4 py-2 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/20"
+                             >
+                               Bayar
+                             </button>
+                           )}
+                           <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-all">
+                              <Trash2 size={18} />
+                           </button>
+                        </div>
                      </div>
                   </div>
                 ))}

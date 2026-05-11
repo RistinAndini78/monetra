@@ -97,13 +97,27 @@ const Bills: React.FC = () => {
   };
 
   const handlePayBill = async (bill: Bill) => {
-    if (bill.status === 'paid') return;
+    // 1. Cek apakah sedang proses atau sudah lunas
+    if (isSubmitting || bill.status === 'paid') return;
+    
     if (!confirm(`Bayar tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)}?`)) return;
 
     try {
       setIsSubmitting(true);
       
-      // 1. Buat transaksi pengeluaran otomatis
+      // 2. Cek ulang status terbaru dari database (antisipasi double click cepat)
+      const { data: latestBill } = await supabase
+        .from('bills')
+        .select('status')
+        .eq('id', bill.id)
+        .single();
+        
+      if (latestBill?.status === 'paid') {
+        alert("Tagihan ini sudah dibayar sebelumnya.");
+        return;
+      }
+
+      // 3. Buat transaksi pengeluaran otomatis
       const { error: txError } = await supabase.from('transactions').insert([{
         type: 'expense',
         amount: bill.amount,
@@ -115,7 +129,7 @@ const Bills: React.FC = () => {
 
       if (txError) throw txError;
 
-      // 2. Update status tagihan jadi 'paid'
+      // 4. Update status tagihan jadi 'paid'
       const { error: billError } = await supabase
         .from('bills')
         .update({ status: 'paid' })
@@ -123,7 +137,7 @@ const Bills: React.FC = () => {
 
       if (billError) throw billError;
 
-      alert("Tagihan berhasil dibayar dan tercatat di transaksi!");
+      alert("Tagihan berhasil dibayar!");
       fetchBills();
     } catch (err: any) {
       alert("Gagal membayar tagihan: " + err.message);

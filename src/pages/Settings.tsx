@@ -136,7 +136,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                   ))}
                </div>
 
-               <div className="mt-10 space-y-3">
+                <div className="mt-10 space-y-3">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Bio</label>
                   <textarea 
                     className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold h-32 resize-none"
@@ -144,43 +144,11 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                     defaultValue="Mengelola portofolio kekayaan yang terdiversifikasi dengan fokus pada keberlanjutan dan pertumbuhan jangka panjang."
                   />
                </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="bg-violet-600/5 border border-violet-600/20 p-10 rounded-[40px] flex flex-col justify-between">
-                  <div className="flex items-center gap-4 mb-6 text-violet-600">
-                     <div className="w-12 h-12 bg-violet-600/10 rounded-2xl flex items-center justify-center">
-                        <ShieldCheck size={24} />
-                     </div>
-                     <div>
-                        <h4 className="text-lg font-black tracking-tight">Verifikasi</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identitas Anda telah terverifikasi sepenuhnya.</p>
-                     </div>
-                  </div>
-                  <button className="w-full bg-violet-600/10 text-violet-600 py-4 rounded-2xl font-black text-sm hover:bg-violet-600/20 transition-all">Lihat Dokumen</button>
+               <div className="flex justify-end gap-4 pt-10">
+                  <button className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Batalkan Perubahan</button>
+                  <button className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all">Simpan Perubahan</button>
                </div>
-
-               <div className="bg-slate-900 p-10 rounded-[40px] text-white flex flex-col justify-between group overflow-hidden relative">
-                  <div className="relative z-10">
-                     <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-violet-600">
-                           <Sparkles size={24} />
-                        </div>
-                        <div>
-                           <h4 className="text-lg font-black tracking-tight">Tingkat Selanjutnya</h4>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tingkatkan ke Monetra Elite</p>
-                        </div>
-                     </div>
-                  </div>
-                  <button className="relative z-10 w-full bg-violet-600 text-white py-4 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-violet-600/40">Pelajari Lebih Lanjut</button>
-                  <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-violet-600/30 blur-3xl rounded-full" />
-               </div>
-            </div>
-
-            <div className="flex justify-end gap-4 pt-10">
-               <button className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Batalkan Perubahan</button>
-               <button className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all">Simpan Perubahan</button>
-            </div>
           </div>
         );
       case "Keamanan & Privasi":

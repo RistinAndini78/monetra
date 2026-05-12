@@ -27,9 +27,10 @@ import { supabase } from "../lib/supabase";
 interface SettingsProps {
   userName?: string;
   userEmail?: string;
+  onUserUpdate?: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id" }) => {
+const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id", onUserUpdate }) => {
   const [activeSubTab, setActiveSubTab] = useState("Informasi Pribadi");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -231,6 +232,8 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                         });
                         if (error) throw error;
                         alert("Profil berhasil diperbarui!");
+                        // Refresh user state di App.tsx agar nama langsung terupdate
+                        onUserUpdate?.();
                       } catch (err: any) {
                         alert("Gagal update: " + err.message);
                       } finally {

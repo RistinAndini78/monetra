@@ -52,6 +52,17 @@ const App = () => {
     setUser(null);
   };
 
+  const handleUserUpdate = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.user_metadata.name || session.user.email,
+      });
+    }
+  };
+
   if (!user) {
      return <Auth onLogin={(u) => setUser(u)} />;
   }
@@ -69,7 +80,7 @@ const App = () => {
       case "Notifications":
         return <Bills />;
       case "Settings":
-        return <Settings userName={user?.name} userEmail={user?.email} />;
+        return <Settings userName={user?.name} userEmail={user?.email} onUserUpdate={handleUserUpdate} />;
       default:
         return <Dashboard onViewAll={() => setActiveTab("Transactions")} userName={user?.name} />;
     }

@@ -133,10 +133,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
-          <div className="px-4 space-y-7">
+          <div className="px-4 space-y-4">
             {navigation.map((group) => (
               <div key={group.group} className="space-y-1">
-                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.25em] px-4 mb-3">{group.group}</p>
+                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.25em] px-4 mb-1">{group.group}</p>
                 <nav className="space-y-0.5">
                   {group.items.map((item) => (
                     <button
@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         setActiveTab(item.id);
                         if (window.innerWidth < 1024) onClose();
                       }}
-                      className={`w-full flex items-center gap-4.5 px-5 py-3.25 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
+                      className={`w-full flex items-center gap-4 px-5 py-2.5 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
                         activeTab === item.id
                           ? "text-white"
                           : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"

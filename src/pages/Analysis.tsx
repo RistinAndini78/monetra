@@ -49,9 +49,11 @@ const Analysis: React.FC = () => {
   const fetchAnalysisData = async () => {
     try {
       setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
       const { data: tx, error } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user?.id)
         .order('date', { ascending: true });
 
       if (error) throw error;

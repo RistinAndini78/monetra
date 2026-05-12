@@ -50,7 +50,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('date', { ascending: false });
       if (error) throw error;
       setTransactions(data || []);
       

@@ -287,9 +287,11 @@ const Bills: React.FC = () => {
                            {bill.status !== 'paid' && (
                              <button 
                                onClick={() => handlePayBill(bill)}
-                               className="px-5 py-2.5 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/20"
+                               disabled={isSubmitting}
+                               className="px-5 py-2.5 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/20 disabled:opacity-50 flex items-center gap-2"
                              >
-                               Bayar
+                               {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : null}
+                               <span>Bayar</span>
                              </button>
                            )}
                            <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-all">
@@ -329,7 +331,7 @@ const Bills: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xl"
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}

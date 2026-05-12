@@ -9,13 +9,8 @@ import Analysis from "./pages/Analysis";
 import Bills from "./pages/Bills";
 import Reports from "./pages/Reports";
 import Monitoring from "./pages/Monitoring";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminSecurity from "./pages/AdminSecurity";
-import Settings from "./pages/Settings";
-import Activity from "./pages/Activity";
-import PushNotificationService from "./lib/notifications";
-
-import { supabase } from "./lib/supabase";
+import AdminTransactions from "./pages/AdminTransactions";
+import SystemNotif from "./pages/SystemNotif";
 
 const App = () => {
   const [user, setUser] = useState<any>(null);
@@ -130,14 +125,11 @@ const App = () => {
       case "Monitoring":
         return <Monitoring />;
       case "AdminTransactions":
-        return (
-          <div className="p-10 text-center">
-             <h2 className="text-2xl font-black text-white">Monitoring Transaksi</h2>
-             <p className="text-slate-400 font-medium mt-2">Daftar semua transaksi user (Admin Only)...</p>
-          </div>
-        );
+        return <AdminTransactions />;
       case "Users":
         return <AdminDashboard />;
+      case "SystemNotif":
+        return <SystemNotif />;
       case "Security":
         return <AdminSecurity />;
       case "Settings":

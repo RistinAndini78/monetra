@@ -546,10 +546,6 @@ const Transactions: React.FC = () => {
             <button key={tab} onClick={() => setFilter(tab)} className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${filter === tab ? "bg-white text-violet-600 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>{tab}</button>
           ))}
         </div>
-        <div className="relative max-w-sm w-full group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-600 transition-colors" size={16} />
-          <input type="text" placeholder="Cari transaksi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-violet-600/5 focus:border-violet-600 focus:bg-white outline-none text-sm text-slate-900 transition-all" />
-        </div>
       </div>
 
       <div className="bg-white border border-slate-100 rounded-[40px] shadow-sm overflow-hidden">

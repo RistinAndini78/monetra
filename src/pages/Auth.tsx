@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 interface AuthProps {
@@ -14,6 +14,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleGoogleLogin = async () => {
     setError("");
@@ -80,6 +81,25 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         setIsLogin(true);
         setError("Registrasi berhasil! Silakan periksa email Anda untuk verifikasi lalu masuk.");
       }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Silakan masukkan alamat email Anda terlebih dahulu.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/#reset-password',
+      });
+      if (error) throw error;
+      setError("Email instruksi pengaturan ulang kata sandi telah dikirim!");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -188,14 +208,32 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-600 transition-colors" size={20} />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-slate-50 border-2 border-transparent focus:border-violet-600/20 focus:bg-white px-12 py-4 rounded-2xl outline-none transition-all font-bold text-slate-900"
                     placeholder="••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
+                {isLogin && (
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-violet-600 transition-colors"
+                    >
+                      Lupa Kata Sandi?
+                    </button>
+                  </div>
+                )}
               </div>
 
               {error && (

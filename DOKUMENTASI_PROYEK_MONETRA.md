@@ -148,8 +148,3 @@ Monetra menggunakan pendekatan **Atomic Design** (meskipun dalam struktur flat):
 - **Platform:** Vercel (Auto-deploy via GitHub).
 - **Environment:** Production branch (`main`).
 - **Optimization:** Vite melakukan *code-splitting* untuk membagi file JS menjadi potongan-potongan kecil agar loading awal lebih ringan.
-
----
-**Lead Architect:** Antigravity AI  
-**Project Owner:** Ristin Iman Andini  
-**Copyright:** 2026 Monetra Ecosystem.

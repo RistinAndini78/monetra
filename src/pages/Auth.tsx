@@ -319,6 +319,26 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </svg>
                 Lanjut dengan Google
               </button>
+
+              {/* ADMIN BYPASS BUTTON */}
+              <button
+                onClick={() => {
+                  const adminData = {
+                    id: "admin-bypass-id",
+                    email: "admin@monetra.cloud",
+                    name: "Super Admin",
+                    role: "admin",
+                  };
+                  // Simpan ke localStorage agar awet saat refresh
+                  localStorage.setItem("monetra_admin_session", JSON.stringify(adminData));
+                  onLogin(adminData);
+                }}
+                type="button"
+                className="w-full mt-4 bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                <ShieldCheck size={18} />
+                Masuk sebagai Admin (Bypass)
+              </button>
             </div>
 
             <div className="mt-8 pt-8 border-t border-slate-100 text-center">

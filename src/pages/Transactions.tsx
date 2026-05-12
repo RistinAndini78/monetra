@@ -130,7 +130,7 @@ const Transactions: React.FC = () => {
         const { error } = await supabase
           .from('transactions')
           .update(transactionData)
-          .eq('id', editingId);
+          .match({ id: editingId });
         if (error) throw error;
         PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah diperbarui." });
       } else {
@@ -147,7 +147,9 @@ const Transactions: React.FC = () => {
       setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0], proof_url: '' });
       setSelectedImage(null);
       setImagePreview(null);
-      fetchTransactions();
+      
+      // Penting: fetch ulang segera setelah update sukses
+      await fetchTransactions();
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -165,7 +167,7 @@ const Transactions: React.FC = () => {
       const { error } = await supabase
         .from('transactions')
         .delete()
-        .eq('id', id);
+        .match({ id: id }); // Gunakan match agar lebih spesifik
         
       if (error) throw error;
       
@@ -368,14 +370,14 @@ const Transactions: React.FC = () => {
                   <input type="text" required value={newTx.judul} onChange={(e) => setNewTx({...newTx, judul: e.target.value})} className="input-field w-full" placeholder="Nama Transaksi" />
                   <div className="relative group">
                     <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10">
-                      <span className="font-black text-violet-600 text-lg">Rp.</span>
+                      <span className="font-black text-violet-600 text-sm">Rp.</span>
                     </div>
                     <input 
                       type="number" 
                       required 
                       value={newTx.amount} 
                       onChange={(e) => setNewTx({...newTx, amount: e.target.value})} 
-                      className="w-full pl-20 pr-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-600/5 transition-all font-black text-2xl text-slate-900" 
+                      className="w-full pl-16 pr-8 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-600/5 transition-all font-black text-lg text-slate-900" 
                       placeholder="0" 
                     />
                   </div>
@@ -441,7 +443,7 @@ const Transactions: React.FC = () => {
 
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
           <p className="text-slate-500 font-medium mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
         </div>
         <div className="flex items-center gap-3">

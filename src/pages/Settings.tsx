@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "motion/react";
 
 import femaleAvatar from "../assets/female.jpg";
 import maleAvatar from "../assets/male.jpg";
+import { supabase } from "../lib/supabase";
 
 interface SettingsProps {
   userName?: string;

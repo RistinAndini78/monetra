@@ -178,35 +178,35 @@ const Transactions: React.FC = () => {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    if (!confirm("Hapus transaksi ini?")) return;
+    console.log("Attempting to delete transaction:", id);
+    if (!window.confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) return;
+    
     try {
       setIsSubmitting(true);
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      
       const { error } = await supabase
         .from('transactions')
         .delete()
         .eq('id', id);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Delete Error:", error);
+        throw new Error(error.message);
+      }
       
-      // Update state secara manual agar instan di layar
+      console.log("Delete successful for:", id);
       setDbTransactions(prev => prev.filter(t => t.id !== id));
-      
-      // Re-fetch untuk sinkronisasi total saldo dll
       await fetchTransactions();
-      
       PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah dihapus." });
     } catch (err: any) {
-      console.error("Error deleting transaction:", err);
-      alert("Gagal menghapus: " + err.message);
+      console.error("Full Delete Error:", err);
+      alert("Gagal menghapus: " + (err.message || "Terjadi kesalahan pada server."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleEditTransaction = (tx: Transaction) => {
+    console.log("Editing transaction:", tx);
     setEditingId(tx.id);
     setNewTx({
       type: tx.type,
@@ -575,8 +575,26 @@ const Transactions: React.FC = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => handleEditTransaction(tx)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100"><Edit2 size={16} /></button>
-                        <button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditTransaction(tx);
+                          }} 
+                          className="p-2.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-violet-100 cursor-pointer relative z-20"
+                          title="Edit Transaksi"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTransaction(tx.id);
+                          }} 
+                          className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-rose-100 cursor-pointer relative z-20"
+                          title="Hapus Transaksi"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>

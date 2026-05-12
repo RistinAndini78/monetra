@@ -55,16 +55,35 @@ const App = () => {
   };
 
   const handleUserUpdate = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
+    // Gunakan getUser() untuk memaksa ambil data terbaru dari server (bukan cache)
+    const { data: { user: latestUser }, error } = await supabase.auth.getUser();
+    if (!error && latestUser) {
       setUser({
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.user_metadata.name || session.user.email,
-        avatarUrl: session.user.user_metadata.avatar_url
+        id: latestUser.id,
+        email: latestUser.email,
+        name: latestUser.user_metadata.name || latestUser.email,
+        avatarUrl: latestUser.user_metadata.avatar_url
       });
     }
   };
+
+  // Sinkronisasi lintas perangkat saat jendela difokuskan kembali
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) handleUserUpdate();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    // Refresh otomatis setiap 2 menit jika tab tetap terbuka
+    const interval = setInterval(() => {
+      if (user) handleUserUpdate();
+    }, 120000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
+  }, [user]);
 
   if (!user) {
      return <Auth onLogin={(u) => setUser(u)} />;

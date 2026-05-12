@@ -437,7 +437,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
                  </p>
               </div>
             ))}
-            {recentTransactions.length === 0 && (
+            {transactions.length === 0 && (
             <div className="w-full py-12 bg-slate-50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
               <p className="text-slate-400 font-bold text-sm">Belum ada transaksi tercatat.</p>
             </div>

@@ -108,16 +108,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="px-6 mb-6">
             <div className="bg-slate-50 border border-slate-100 p-4 rounded-3xl flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-slate-100/50">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0 z-10 bg-indigo-500">
-                <img 
-                  src={
-                    (userName?.toLowerCase().match(/(i|a)$/) || userName?.toLowerCase().match(/(putri|sari|ayu|dewi|andini|rina|maya|fitri|lestari|indah|amalia)/)) 
-                    ? femaleAvatar 
-                    : maleAvatar
-                  } 
-                  alt="Profil" 
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm shrink-0 z-10 bg-violet-600 flex items-center justify-center">
+                <span className="text-white font-black text-xl uppercase">
+                  {userName?.charAt(0) || 'P'}
+                </span>
               </div>
               <div className="overflow-hidden z-10">
                 <p className="text-sm font-black text-slate-900 truncate">

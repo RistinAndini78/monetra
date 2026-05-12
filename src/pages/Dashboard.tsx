@@ -247,6 +247,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
               <ArrowDownRight size={14} className="text-violet-600" />
               Export Laporan
             </button>
+            <button 
+              onClick={() => PushNotificationService.sendNotification("Halo! 👋", { body: "Notifikasi Monetra berhasil aktif di sistem Anda." })}
+              className="bg-violet-50 hover:bg-violet-100 text-violet-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
+            >
+              <Bell size={14} />
+              Tes Notifikasi
+            </button>
           </div>
           <p className="text-slate-500 font-medium">Berikut adalah analisis modular real-time untuk aset dan likuiditas Anda.</p>
         </div>

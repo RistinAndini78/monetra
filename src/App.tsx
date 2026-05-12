@@ -24,9 +24,6 @@ const App = () => {
   });
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<"user" | "admin">("admin");
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("monetra_dark_mode") === "true";
-  });
   
   useEffect(() => {
     // Check for OAuth errors in URL
@@ -156,7 +153,7 @@ const App = () => {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark bg-slate-900' : 'bg-[#F8F9FB]'} flex font-sans transition-colors duration-300`}>
+    <div className="min-h-screen bg-[#F8F9FB] flex font-sans">
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -166,12 +163,6 @@ const App = () => {
         setUserRole={setUserRole}
         onLogout={handleLogout}
         userName={user?.name}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={() => {
-          const newValue = !isDarkMode;
-          setIsDarkMode(newValue);
-          localStorage.setItem("monetra_dark_mode", String(newValue));
-        }}
       />
 
       <div className="flex-1 lg:ml-72 flex flex-col min-h-screen">

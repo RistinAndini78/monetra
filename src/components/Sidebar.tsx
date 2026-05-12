@@ -67,6 +67,11 @@ const adminNavigation = [
   ]}
 ];
 
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  activeTab, 
+  setActiveTab, 
+  isOpen, 
+  onClose,
   userRole,
   onLogout,
   userName,

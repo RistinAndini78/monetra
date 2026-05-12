@@ -35,6 +35,10 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
   // State untuk form fields agar terhubung ke DB
   const [formData, setFormData] = useState({
@@ -70,16 +74,52 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const startCamera = async () => {
+    try {
+      setIsCameraOpen(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: 400, height: 400 } 
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Gagal akses kamera:", err);
+      alert("Tidak dapat mengakses kamera. Pastikan izin telah diberikan.");
+      setIsCameraOpen(false);
+    }
+  };
 
-    // Tampilkan preview lokal dulu
-    const reader = new FileReader();
-    reader.onloadend = () => setProfileImage(reader.result as string);
-    reader.readAsDataURL(file);
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraOpen(false);
+  };
 
-    // Upload ke Supabase Storage
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const context = canvasRef.current.getContext('2d');
+    if (!context) return;
+
+    // Draw video frame to canvas
+    context.drawImage(videoRef.current, 0, 0, 400, 400);
+    
+    // Convert canvas to blob
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+      
+      // Stop camera and upload
+      stopCamera();
+      await uploadFile(file);
+    }, 'image/jpeg', 0.9);
+  };
+
+  const uploadFile = async (file: File) => {
     try {
       setIsUploadingPhoto(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -98,7 +138,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
       
       const finalUrl = `${publicUrl}?t=${new Date().getTime()}`;
 
-      // Simpan URL ke user_metadata
       await supabase.auth.updateUser({ data: { avatar_url: finalUrl } });
       setProfileImage(finalUrl);
       onUserUpdate?.();
@@ -108,6 +147,18 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     } finally {
       setIsUploadingPhoto(false);
     }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Tampilkan preview lokal dulu
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImage(reader.result as string);
+    reader.readAsDataURL(file);
+
+    await uploadFile(file);
   };
 
   const menuItems = [
@@ -156,21 +207,30 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                     accept="image/*"
                     capture="environment"
                   />
-                  <div 
-                    onClick={handleUploadClick}
-                    className="border-2 border-dashed border-slate-100 rounded-[24px] p-8 flex flex-col items-center justify-center group cursor-pointer hover:border-violet-600/40 hover:bg-violet-600/5 transition-all"
-                  >
-                    {isUploadingPhoto ? (
-                      <>
-                        <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-2" />
-                        <span className="text-xs font-black text-violet-600 tracking-widest uppercase">Mengunggah foto...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Camera className="text-slate-300 mb-2 group-hover:text-violet-600" size={24} />
-                        <span className="text-xs font-black text-slate-400 group-hover:text-violet-600 tracking-widest uppercase">Ambil foto / unggah dari galeri</span>
-                      </>
-                    )}
+                   <div className="flex flex-col sm:flex-row gap-4">
+                    <div 
+                      onClick={handleUploadClick}
+                      className="border-2 border-dashed border-slate-100 rounded-[24px] p-6 flex flex-col items-center justify-center group cursor-pointer hover:border-violet-600/40 hover:bg-violet-600/5 transition-all flex-1"
+                    >
+                      {isUploadingPhoto ? (
+                        <>
+                          <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-2" />
+                          <span className="text-xs font-black text-violet-600 tracking-widest uppercase">Mengunggah...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="text-slate-300 mb-2 group-hover:text-violet-600" size={24} />
+                          <span className="text-xs font-black text-slate-400 group-hover:text-violet-600 tracking-widest uppercase text-center">Pilih Galeri</span>
+                        </>
+                      )}
+                    </div>
+                    <div 
+                      onClick={startCamera}
+                      className="border-2 border-dashed border-slate-100 rounded-[24px] p-6 flex flex-col items-center justify-center group cursor-pointer hover:border-emerald-600/40 hover:bg-emerald-600/5 transition-all flex-1"
+                    >
+                      <Camera className="text-slate-300 mb-2 group-hover:text-emerald-600" size={24} />
+                      <span className="text-xs font-black text-slate-400 group-hover:text-emerald-600 tracking-widest uppercase text-center">Ambil Foto</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -288,8 +348,63 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                    >
                     {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                    </button>
-                </div>
+                 </div>
+              </div>
             </div>
+
+            {/* Camera Modal */}
+            <AnimatePresence>
+              {isCameraOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }} 
+                    onClick={stopCamera}
+                    className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" 
+                  />
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                    animate={{ opacity: 1, scale: 1, y: 0 }} 
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="bg-white rounded-[40px] overflow-hidden w-full max-w-md relative z-10 shadow-2xl"
+                  >
+                    <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                       <h3 className="text-xl font-black text-slate-900">Ambil Foto Profil</h3>
+                       <button onClick={stopCamera} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400">
+                          <MoreHorizontal size={20} />
+                       </button>
+                    </div>
+                    
+                    <div className="p-8 bg-slate-900 aspect-square relative">
+                       <video 
+                         ref={videoRef} 
+                         autoPlay 
+                         playsInline 
+                         className="w-full h-full object-cover rounded-3xl"
+                       />
+                       <canvas ref={canvasRef} width="400" height="400" className="hidden" />
+                    </div>
+                    
+                    <div className="p-8 flex items-center justify-center gap-6">
+                       <button 
+                         onClick={stopCamera}
+                         className="px-8 py-4 rounded-2xl text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest"
+                       >
+                         Batal
+                       </button>
+                       <button 
+                         onClick={capturePhoto}
+                         className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+                       >
+                         <Camera size={18} />
+                         <span>Ambil Foto</span>
+                       </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
           </div>
         );
       case "Keamanan & Privasi":

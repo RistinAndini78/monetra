@@ -243,9 +243,9 @@ const Bills: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 gap-8 items-start">
         {/* Kalender / Daftar Tagihan */}
-        <div className="lg:col-span-8 bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
            <h3 className="text-xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
            
            {loading ? (
@@ -298,20 +298,6 @@ const Bills: React.FC = () => {
            )}
         </div>
 
-        {/* Sidebar Info */}
-        <div className="lg:col-span-4">
-           <div className="bg-[#7C3AED] p-10 rounded-[48px] text-white shadow-2xl shadow-violet-600/30 relative overflow-hidden min-h-[340px] flex flex-col justify-center">
-              <div className="relative z-10">
-                 <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
-                    <Bell size={28} className="text-white" />
-                 </div>
-                 <h3 className="text-xl font-black mb-4 tracking-tight">Email Pengingat</h3>
-                 <p className="text-violet-100 text-sm font-medium leading-relaxed opacity-90">
-                    Setiap tagihan yang Anda buat akan otomatis mengirimkan email pengingat 3 hari sebelum tanggal jatuh tempo.
-                 </p>
-              </div>
-              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-           </div>
         </div>
       </div>
 

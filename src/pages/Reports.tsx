@@ -10,7 +10,8 @@ import {
   MapPin,
   TrendingUp,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Loader2
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -24,14 +25,130 @@ import {
   Bar
 } from "recharts";
 import { motion } from "framer-motion";
-
-const data: any[] = [];
-const transactions: any[] = [];
+import { format } from "date-fns";
+import { supabase } from "../lib/supabase";
 
 const Reports: React.FC = () => {
+  const [transactions, setTransactions] = React.useState<any[]>([]);
+  const [chartData, setChartData] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [categoryStats, setCategoryStats] = React.useState<any[]>([]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
+
+  React.useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      const { data: txData, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      // 1. Process Chart Data (Last 6 Months)
+      const months: any = {};
+      const last6Months = Array.from({ length: 6 }).map((_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - i));
+        return format(d, 'yyyy-MM');
+      });
+
+      last6Months.forEach(m => months[m] = { name: format(new Date(m), 'MMM'), income: 0, expenses: 0 });
+
+      txData?.forEach(tx => {
+        const monthKey = tx.date.substring(0, 7);
+        if (months[monthKey]) {
+          if (tx.type === 'income') months[monthKey].income += Number(tx.amount);
+          else months[monthKey].expenses += Number(tx.amount);
+        }
+      });
+
+      setChartData(Object.values(months));
+
+      // 2. Process Transactions List
+      setTransactions(txData || []);
+
+      // 3. Process Category Stats
+      const categories: any = {};
+      let totalExp = 0;
+      txData?.filter(tx => tx.type === 'expense').forEach(tx => {
+        categories[tx.category] = (categories[tx.category] || 0) + Number(tx.amount);
+        totalExp += Number(tx.amount);
+      });
+
+      const processedCats = Object.keys(categories).map(cat => ({
+        name: cat,
+        val: totalExp > 0 ? Math.round((categories[cat] / totalExp) * 100) : 0,
+        color: cat === 'Makanan' ? 'bg-orange-500' : (cat === 'Transport' ? 'bg-sky-400' : 'bg-violet-600')
+      })).sort((a, b) => b.val - a.val).slice(0, 3);
+
+      setCategoryStats(processedCats);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text("Laporan Keuangan Monetra", 14, 22);
+    doc.setFontSize(10);
+    doc.text(`Dicetak pada: ${format(new Date(), "dd MMMM yyyy HH:mm")}`, 14, 30);
+
+    const tableData = transactions.map(tx => [
+      tx.date,
+      tx.description || "Tanpa Judul",
+      tx.category,
+      tx.type === 'income' ? 'Masuk' : 'Keluar',
+      formatCurrency(tx.amount)
+    ]);
+
+    autoTable(doc, {
+      head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Jumlah']],
+      body: tableData,
+      startY: 40,
+      theme: 'grid',
+      headStyles: { fillGray: 200, textColor: 20, fontStyle: 'bold' }
+    });
+
+    doc.save(`Monetra_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Tanggal", "Keterangan", "Kategori", "Tipe", "Jumlah"];
+    const rows = transactions.map(tx => [
+      tx.date,
+      tx.description || "Tanpa Judul",
+      tx.category,
+      tx.type,
+      tx.amount
+    ]);
+    
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", `Monetra_Report_${format(new Date(), "yyyyMMdd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading) return (
+    <div className="p-10 flex items-center justify-center min-h-[400px]">
+      <Loader2 className="animate-spin text-violet-600" size={40} />
+    </div>
+  );
 
   return (
     <div className="p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
@@ -78,9 +195,9 @@ const Reports: React.FC = () => {
           </div>
           
           <div className="h-[350px] w-full">
-            {data.length > 0 ? (
+            {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.1}/>
@@ -132,11 +249,17 @@ const Reports: React.FC = () => {
           </div>
 
           <div className="relative z-10 space-y-4">
-             <button className="w-full bg-white text-violet-600 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-violet-600/20">
+             <button 
+               onClick={handleExportPDF}
+               className="w-full bg-white text-violet-600 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-violet-600/20"
+             >
                 <FileText size={18} />
                 Ekspor ke PDF
              </button>
-             <button className="w-full bg-white/10 text-white border border-white/10 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-white/20 transition-all">
+             <button 
+               onClick={handleExportCSV}
+               className="w-full bg-white/10 text-white border border-white/10 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-white/20 transition-all"
+             >
                 <Download size={18} />
                 Ekspor ke Excel
              </button>
@@ -187,27 +310,27 @@ const Reports: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {transactions.length > 0 ? transactions.map((tx) => (
+              {transactions.length > 0 ? transactions.slice(0, 10).map((tx) => (
                 <tr key={tx.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="py-6 text-sm font-bold text-slate-600">{tx.date}</td>
                   <td className="py-6">
-                    <p className="text-sm font-black text-slate-900">{tx.desc}</p>
+                    <p className="text-sm font-black text-slate-900">{tx.description || "Tanpa Judul"}</p>
                   </td>
                   <td className="py-6">
                     <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                      tx.cat === 'Pemasukan' ? 'bg-emerald-50 text-emerald-500' : 'bg-violet-600/5 text-violet-600'
+                      tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-violet-600/5 text-violet-600'
                     }`}>
-                      {tx.cat}
+                      {tx.category}
                     </span>
                   </td>
-                  <td className="py-6 text-xs font-bold text-slate-400 uppercase tracking-wider">{tx.method}</td>
-                  <td className={`py-6 text-sm font-black ${tx.amount > 0 ? 'text-emerald-500' : 'text-slate-900'}`}>
-                    {tx.amount > 0 ? `+${formatCurrency(tx.amount)}` : `-${formatCurrency(Math.abs(tx.amount))}`}
+                  <td className="py-6 text-xs font-bold text-slate-400 uppercase tracking-wider">{tx.type}</td>
+                  <td className={`py-6 text-sm font-black ${tx.type === 'income' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                    {tx.type === 'income' ? `+${formatCurrency(tx.amount)}` : `-${formatCurrency(tx.amount)}`}
                   </td>
                   <td className="py-6">
                     <div className="flex items-center gap-2">
-                       <div className={`w-1.5 h-1.5 rounded-full ${tx.status === 'Selesai' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{tx.status}</span>
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selesai</span>
                     </div>
                   </td>
                 </tr>
@@ -237,12 +360,8 @@ const Reports: React.FC = () => {
          <div className="lg:col-span-4 bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between">
             <div>
                <h3 className="text-xl font-black text-slate-900 mb-8">Kategori Teratas</h3>
-               <div className="space-y-6">
-                  {[
-                    { name: "Rumah & Sewa", val: 35, color: "bg-violet-600" },
-                    { name: "Investasi", val: 28, color: "bg-sky-400" },
-                    { name: "Makanan & Gaya Hidup", val: 22, color: "bg-slate-900" },
-                  ].map(cat => (
+                <div className="space-y-6">
+                  {categoryStats.map(cat => (
                     <div key={cat.name} className="space-y-2">
                        <div className="flex justify-between items-center">
                           <span className="text-xs font-black text-slate-900">{cat.name}</span>
@@ -257,7 +376,7 @@ const Reports: React.FC = () => {
                        </div>
                     </div>
                   ))}
-               </div>
+                </div>
             </div>
             <button className="flex items-center justify-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mt-10 hover:underline">
                Jelajahi Rincian Lengkap <ArrowUpRight size={14} />

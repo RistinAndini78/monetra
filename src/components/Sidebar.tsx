@@ -44,6 +44,7 @@ const userNavigation = [
   ]},
   { group: "ANALISIS", items: [
     { name: "Analytics", id: "Analysis", icon: BarChart3 },
+    { name: "Laporan", id: "Reports", icon: FileText },
   ]},
   { group: "PENGATURAN", items: [
     { name: "Notifikasi", id: "Notifications", icon: Bell },

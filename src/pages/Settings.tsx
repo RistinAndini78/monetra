@@ -32,7 +32,33 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id" }) => {
   const [activeSubTab, setActiveSubTab] = useState("Informasi Pribadi");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // State untuk form fields agar terhubung ke DB
+  const [formData, setFormData] = useState({
+    name: userName,
+    phone: '',
+    location: '',
+    bio: ''
+  });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Ambil data metadata saat load
+  React.useEffect(() => {
+    const loadMetadata = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata) {
+        setFormData({
+          name: user.user_metadata.name || userName,
+          phone: user.user_metadata.phone || '',
+          location: user.user_metadata.location || '',
+          bio: user.user_metadata.bio || ''
+        });
+      }
+    };
+    loadMetadata();
+  }, [userName]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -114,35 +140,72 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                   </div>
                </div>
                
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {[
-                    { label: "Nama Lengkap", value: userName, icon: <User size={14} /> },
-                    { label: "Alamat Email", value: userEmail, icon: <Mail size={14} /> },
-                    { label: "Nomor Telepon", value: "+62 812-3456-7890", icon: <Phone size={14} /> },
-                    { label: "Lokasi", value: "Jakarta, Indonesia", icon: <MapPin size={14} /> },
-                  ].map(field => (
-                    <div key={field.label} className="space-y-3">
-                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{field.label}</label>
-                       <div className="relative group">
-                          <input 
-                            type="text" 
-                            defaultValue={field.value}
-                            className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
-                          />
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
-                             {field.icon}
-                          </div>
-                       </div>
-                    </div>
-                  ))}
-               </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-3">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+                      <div className="relative group">
+                         <input 
+                           type="text" 
+                           value={formData.name}
+                           onChange={(e) => setFormData({...formData, name: e.target.value})}
+                           className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
+                         />
+                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
+                            <User size={14} />
+                         </div>
+                      </div>
+                   </div>
+                   <div className="space-y-3">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Alamat Email</label>
+                      <div className="relative group">
+                         <input 
+                           type="text" 
+                           readOnly
+                           value={userEmail}
+                           className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none opacity-60 cursor-not-allowed font-semibold"
+                         />
+                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
+                            <Mail size={14} />
+                         </div>
+                      </div>
+                   </div>
+                   <div className="space-y-3">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Nomor Telepon</label>
+                      <div className="relative group">
+                         <input 
+                           type="text" 
+                           value={formData.phone}
+                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                           className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
+                         />
+                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
+                            <Phone size={14} />
+                         </div>
+                      </div>
+                   </div>
+                   <div className="space-y-3">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Lokasi</label>
+                      <div className="relative group">
+                         <input 
+                           type="text" 
+                           value={formData.location}
+                           onChange={(e) => setFormData({...formData, location: e.target.value})}
+                           className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
+                         />
+                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
+                            <MapPin size={14} />
+                         </div>
+                      </div>
+                   </div>
+                </div>
 
                 <div className="mt-10 space-y-3">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Bio</label>
                   <textarea 
                     className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold h-32 resize-none"
                     placeholder="Ceritakan tentang diri Anda..."
-                    defaultValue="Mengelola portofolio kekayaan yang terdiversifikasi dengan fokus pada keberlanjutan dan pertumbuhan jangka panjang."
+                    value={formData.bio}
+                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
                   />
                </div>
 
@@ -154,17 +217,29 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                     Batalkan
                    </button>
                    <button 
+                    disabled={isSaving}
                     onClick={async () => {
-                      const newName = (document.querySelector('input[defaultValue="' + userName + '"]') as HTMLInputElement)?.value;
-                      const { error } = await supabase.auth.updateUser({
-                        data: { name: newName || userName }
-                      });
-                      if (error) alert("Gagal update: " + error.message);
-                      else alert("Profil berhasil diperbarui! Silakan refresh halaman.");
+                      try {
+                        setIsSaving(true);
+                        const { error } = await supabase.auth.updateUser({
+                          data: { 
+                            name: formData.name,
+                            phone: formData.phone,
+                            location: formData.location,
+                            bio: formData.bio
+                          }
+                        });
+                        if (error) throw error;
+                        alert("Profil berhasil diperbarui!");
+                      } catch (err: any) {
+                        alert("Gagal update: " + err.message);
+                      } finally {
+                        setIsSaving(false);
+                      }
                     }}
-                    className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all"
+                    className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                    >
-                    Simpan Perubahan
+                    {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                    </button>
                 </div>
             </div>

@@ -183,18 +183,46 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
   return (
     <div className="p-8 sm:p-12 space-y-10 max-w-[1400px] mx-auto w-full pb-24 bg-[#F8F9FC]">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
         <div className="space-y-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight whitespace-nowrap">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">
               {getGreeting()}, {userName || 'Pengguna'}
             </h1>
           </div>
-          <p className="text-slate-500 font-medium">Berikut adalah analisis modular real-time untuk aset dan likuiditas Anda.</p>
+          <p className="text-slate-500 font-medium tracking-tight">Berikut adalah analisis modular real-time untuk aset dan likuiditas Anda.</p>
         </div>
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm min-w-[280px]">
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px] group hover:border-violet-100 transition-all">
            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Aset Bersih</p>
-           <h2 className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(balance)}</h2>
+           <div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(balance)}</h2>
+              <p className="text-[10px] font-bold text-emerald-500 mt-2 uppercase tracking-wider flex items-center gap-1">
+                 <ArrowUpRight size={12} /> Saldo Stabil
+              </p>
+           </div>
+        </div>
+        <div 
+          onClick={() => onViewAll && onViewAll()}
+          className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px] cursor-pointer group hover:border-emerald-100 transition-all"
+        >
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pemasukan</p>
+           <div>
+              <h2 className="text-2xl font-black text-emerald-600 tracking-tight">{formatCurrency(totalIncome)}</h2>
+              <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Bulan Ini</p>
+           </div>
+        </div>
+        <div 
+          onClick={() => onViewAll && onViewAll()}
+          className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px] cursor-pointer group hover:border-rose-100 transition-all"
+        >
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pengeluaran</p>
+           <div>
+              <h2 className="text-2xl font-black text-rose-600 tracking-tight">{formatCurrency(totalExpense)}</h2>
+              <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Bulan Ini</p>
+           </div>
         </div>
       </div>
 

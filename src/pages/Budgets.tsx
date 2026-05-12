@@ -31,7 +31,11 @@ interface Budget {
   user_id: string;
 }
 
-const Budgets: React.FC = () => {
+interface BudgetsProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const Budgets: React.FC<BudgetsProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'Harian' | 'Mingguan' | 'Bulanan'>('Bulanan');
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,7 +177,7 @@ const Budgets: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Anggaran / Budget</h2>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Anggaran / Budget</h2>
           <p className="text-slate-500 font-medium mt-1">Pantau sisa anggaran Anda sesuai periode.</p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-3">
@@ -275,9 +279,15 @@ const Budgets: React.FC = () => {
                       <p className="text-xs text-slate-600 font-bold">Anda telah melebihi budget di beberapa kategori.</p>
                    </div>
                  )}
-                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                 <p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">
                    Sistem secara otomatis menghitung setiap pengeluaran yang Anda catat di menu <b>Transaksi</b> dan memasukkannya ke sini.
                  </p>
+                 <button 
+                   onClick={() => onNavigate && onNavigate('Analysis')}
+                   className="text-[10px] font-black text-violet-600 uppercase tracking-widest hover:underline"
+                 >
+                   Lihat Detail Analisis →
+                 </button>
               </div>
            </div>
         </div>

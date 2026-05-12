@@ -69,7 +69,15 @@ const Transactions: React.FC = () => {
       const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
       if (error) throw error;
       const mapped: Transaction[] = (data || []).map((tx: any) => ({
-        id: tx.id, name: tx.description || "Tanpa Judul", category: tx.category, date: tx.date, amount: Number(tx.amount), type: tx.type, status: 'completed', catatan: tx.catatan
+        id: tx.id, 
+        name: tx.description || "Tanpa Judul", 
+        category: tx.category, 
+        date: tx.date, 
+        amount: Number(tx.amount), 
+        type: tx.type, 
+        status: 'completed', 
+        catatan: tx.catatan,
+        proof_url: tx.proof_url
       }));
       setDbTransactions(mapped);
     } catch (err) {
@@ -126,19 +134,31 @@ const Transactions: React.FC = () => {
       };
 
       if (editingId) {
-        // Update Transaksi Lama
+        // Update Transaksi Lama (Hapus user_id dari payload update agar tidak konflik)
+        const { user_id, ...updateData } = transactionData;
+        
+        // Bersihkan data dari undefined/null jika ada
+        Object.keys(updateData).forEach(key => (updateData as any)[key] === undefined && delete (updateData as any)[key]);
+
         const { error } = await supabase
           .from('transactions')
-          .update(transactionData)
-          .match({ id: editingId });
-        if (error) throw error;
+          .update(updateData)
+          .eq('id', editingId);
+          
+        if (error) {
+          console.error("Update Error:", error);
+          throw new Error("Gagal memperbarui: " + error.message);
+        }
         PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah diperbarui." });
       } else {
         // Tambah Transaksi Baru
         const { error } = await supabase
           .from('transactions')
           .insert([transactionData]);
-        if (error) throw error;
+        if (error) {
+          console.error("Insert Error:", error);
+          throw new Error("Gagal menyimpan: " + error.message);
+        }
         PushNotificationService.sendNotification("Berhasil", { body: "Transaksi baru telah dicatat." });
       }
 
@@ -167,7 +187,7 @@ const Transactions: React.FC = () => {
       const { error } = await supabase
         .from('transactions')
         .delete()
-        .match({ id: id }); // Gunakan match agar lebih spesifik
+        .eq('id', id);
         
       if (error) throw error;
       
@@ -370,14 +390,14 @@ const Transactions: React.FC = () => {
                   <input type="text" required value={newTx.judul} onChange={(e) => setNewTx({...newTx, judul: e.target.value})} className="input-field w-full" placeholder="Nama Transaksi" />
                   <div className="relative group">
                     <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10">
-                      <span className="font-black text-violet-600 text-sm">Rp.</span>
+                      <span className="font-black text-violet-600 text-[10px]">Rp.</span>
                     </div>
                     <input 
                       type="number" 
                       required 
                       value={newTx.amount} 
                       onChange={(e) => setNewTx({...newTx, amount: e.target.value})} 
-                      className="w-full pl-16 pr-8 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-600/5 transition-all font-black text-lg text-slate-900" 
+                      className="w-full pl-14 pr-8 py-3.5 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-600/5 transition-all font-black text-base text-slate-900" 
                       placeholder="0" 
                     />
                   </div>
@@ -443,8 +463,8 @@ const Transactions: React.FC = () => {
 
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
-          <p className="text-slate-500 font-medium mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
+          <p className="text-slate-400 font-medium text-xs mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 

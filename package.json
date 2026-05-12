@@ -1,7 +1,7 @@
 {
   "name": "monetra",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "lucide-react": "^0.454.0",
     "recharts": "^2.13.0",
     "motion": "^12.0.0",

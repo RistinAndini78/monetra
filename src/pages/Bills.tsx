@@ -212,7 +212,7 @@ const Bills: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
           <p className="text-slate-400 font-medium">Pantau semua pengingat dan kewajiban pembayaran Anda.</p>
         </div>
         <div className="flex items-center gap-4">

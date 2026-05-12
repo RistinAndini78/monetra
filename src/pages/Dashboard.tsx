@@ -248,7 +248,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight whitespace-nowrap">
               {getGreeting()}, {userName || 'Pengguna'}
             </h1>
             <button 

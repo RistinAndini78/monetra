@@ -7,7 +7,6 @@ import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Analysis from "./pages/Analysis";
 import Bills from "./pages/Bills";
-import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import { supabase } from "./lib/supabase";
 
@@ -65,8 +64,6 @@ const App = () => {
         return <Transactions />;
       case "Analysis":
         return <Analysis />;
-      case "Reports":
-        return <Reports />;
       case "Budgets":
         return <Budgets onNavigate={setActiveTab} />;
       case "Notifications":

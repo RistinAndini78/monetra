@@ -26,7 +26,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { motion } from "motion";
+import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { id } from "date-fns/locale";

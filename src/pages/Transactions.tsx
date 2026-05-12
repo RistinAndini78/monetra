@@ -14,7 +14,7 @@ import {
   Edit2,
   Upload
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import FileService from "../lib/fileService";

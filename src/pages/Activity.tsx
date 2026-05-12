@@ -10,7 +10,7 @@ import {
   Clock,
   Search
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 

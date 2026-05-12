@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Bell, Menu, LayoutGrid, Check, Clock, Trash2, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 

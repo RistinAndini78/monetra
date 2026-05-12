@@ -19,7 +19,7 @@ import {
   Globe,
   BellRing
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import femaleAvatar from "../assets/female.jpg";
 import maleAvatar from "../assets/male.jpg";

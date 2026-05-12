@@ -1,6 +1,6 @@
 import React from "react";
 import { TrendingUp, Target } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 export const SavingsGoal: React.FC = () => {
   return (

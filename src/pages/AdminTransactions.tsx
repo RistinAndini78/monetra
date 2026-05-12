@@ -10,7 +10,7 @@ import {
   History
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 const AdminTransactions: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);

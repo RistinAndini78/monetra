@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet } from "lucide-react";
 import { supabase } from "../lib/supabase";
 

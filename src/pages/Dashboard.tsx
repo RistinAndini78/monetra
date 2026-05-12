@@ -15,7 +15,7 @@ import {
   Bell
 } from "lucide-react";
 import PushNotificationService from "../lib/notifications";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { format, subMonths } from "date-fns";
 import { id } from "date-fns/locale";

@@ -27,7 +27,7 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { motion, AnimatePresence } from "motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabase";
 
 const mockTpsData = Array.from({ length: 20 }, (_, i) => ({

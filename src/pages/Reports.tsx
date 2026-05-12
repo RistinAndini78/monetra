@@ -23,7 +23,7 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 const data: any[] = [];
 const transactions: any[] = [];

@@ -17,10 +17,11 @@ import { supabase } from "../lib/supabase";
 interface SettingsProps {
   userName?: string;
   userEmail?: string;
+  avatarUrl?: string;
   onUserUpdate?: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id", onUserUpdate }) => {
+const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id", avatarUrl, onUserUpdate }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -50,6 +51,13 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     };
     loadMetadata();
   }, [userName]);
+
+  // Sinkronisasi otomatis saat avatarUrl dari prop (App.tsx) berubah
+  useEffect(() => {
+    if (avatarUrl) {
+      setProfileImage(avatarUrl);
+    }
+  }, [avatarUrl]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();

@@ -74,13 +74,15 @@ const App = () => {
     };
 
     window.addEventListener('focus', handleFocus);
-    // Refresh otomatis setiap 2 menit jika tab tetap terbuka
+    window.addEventListener('visibilitychange', handleFocus);
+    // Refresh otomatis setiap 30 detik jika tab tetap terbuka
     const interval = setInterval(() => {
       if (user) handleUserUpdate();
-    }, 120000);
+    }, 30000);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
       clearInterval(interval);
     };
   }, [user]);
@@ -102,7 +104,7 @@ const App = () => {
       case "Notifications":
         return <Bills />;
       case "Settings":
-        return <Settings userName={user?.name} userEmail={user?.email} onUserUpdate={handleUserUpdate} />;
+        return <Settings userName={user?.name} userEmail={user?.email} avatarUrl={user?.avatarUrl} onUserUpdate={handleUserUpdate} />;
       default:
         return <Dashboard onViewAll={() => setActiveTab("Transactions")} userName={user?.name} />;
     }

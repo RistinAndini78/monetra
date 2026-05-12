@@ -32,6 +32,10 @@ interface Bill {
   user_id: string;
 }
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+};
+
 const Bills: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -176,10 +180,6 @@ const Bills: React.FC = () => {
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
   const totalKewajiban = bills.filter(b => b.status !== 'paid').reduce((acc, curr) => acc + curr.amount, 0);

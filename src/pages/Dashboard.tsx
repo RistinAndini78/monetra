@@ -28,6 +28,10 @@ interface DashboardProps {
   userName?: string;
 }
 
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,10 +150,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
     val: expensesByCategory[name],
     count: transactions.filter(t => t.category === name).length
   })).sort((a, b) => b.val - a.val).slice(0, 6);
-
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();

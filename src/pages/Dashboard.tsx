@@ -81,23 +81,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
          return;
        }
 
-       console.log("Tagihan ditemukan:", dueBills?.length || 0);
-
        if (dueBills && dueBills.length > 0) {
           const { data: userData } = await supabase.auth.getUser();
           
           for (const bill of dueBills) {
-             console.log("Mengirim notifikasi untuk:", bill.name);
-             
-             // 1. Kirim Notifikasi Web (Lonceng)
              const { error: notifError } = await supabase.from('notifications').insert([{
                 user_id: userData.user?.id,
                 title: '⚠️ Tagihan Jatuh Tempo!',
                 message: `Tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)} jatuh tempo HARI INI.`,
                 type: 'warning'
              }]);
-
-             if (notifError) console.error("Gagal simpan notifikasi ke DB:", notifError);
+             if (notifError) console.error("Gagal simpan notifikasi:", notifError);
           }
        }
     } catch (err) { console.error("Smart check failed", err); }

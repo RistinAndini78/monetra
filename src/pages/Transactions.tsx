@@ -48,15 +48,12 @@ const Transactions: React.FC = () => {
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const kategoriPemasukan = ['Gaji', 'Bonus', 'Investasi', 'Lainnya'];
   const kategoriPengeluaran = ['Makanan', 'Transport', 'Belanja', 'Kesehatan', 'Lainnya'];
   const currentKategori = newTx.type === 'income' ? kategoriPemasukan : kategoriPengeluaran;
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
 
   useEffect(() => {
     fetchTransactions();
@@ -158,14 +155,22 @@ const Transactions: React.FC = () => {
     if (!confirm("Hapus transaksi ini?")) return;
     try {
       setIsSubmitting(true);
-      const { error } = await supabase.from('transactions').delete().eq('id', id);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
+        
       if (error) throw error;
       
       // Update state secara manual agar instan di layar
       setDbTransactions(prev => prev.filter(t => t.id !== id));
       
       // Re-fetch untuk sinkronisasi total saldo dll
-      fetchTransactions();
+      await fetchTransactions();
       
       PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah dihapus." });
     } catch (err: any) {
@@ -177,6 +182,7 @@ const Transactions: React.FC = () => {
   };
 
   const handleEditTransaction = (tx: Transaction) => {
+    setEditingId(tx.id);
     setNewTx({
       type: tx.type,
       amount: tx.amount.toString(),
@@ -298,7 +304,7 @@ const Transactions: React.FC = () => {
               className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col z-10"
             >
               <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">✨ Transaksi Baru</h3>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">{editingId ? "✏️ Edit Transaksi" : "✨ Transaksi Baru"}</h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-50 rounded-xl"><X size={20} /></button>
               </div>
               <form onSubmit={handleAddTransaction} className="p-8 space-y-6">
@@ -384,7 +390,7 @@ const Transactions: React.FC = () => {
           >
             <Download size={20} />
           </button>
-          <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 py-3"><Plus size={18} /> <span>Tambah</span></button>
+          <button onClick={() => { setEditingId(null); setIsModalOpen(true); }} className="btn-primary flex items-center gap-2 py-3"><Plus size={18} /> <span>Tambah</span></button>
         </div>
       </header>
 
@@ -478,7 +484,7 @@ const Transactions: React.FC = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center justify-center gap-2">
-                        <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100"><Edit2 size={16} /></button>
+                        <button onClick={() => handleEditTransaction(tx)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100"><Edit2 size={16} /></button>
                         <button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                       </div>
                     </td>

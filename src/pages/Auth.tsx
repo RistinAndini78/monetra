@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet, Fingerprint } from "lucide-react";
+import { motion, AnimatePresence } from "motion";
+import { Mail, Lock, User, ArrowRight, ShieldCheck, PieChart, Wallet } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { Capacitor } from "@capacitor/core";
-import { NativeBiometric } from "capacitor-native-biometric";
 
 interface AuthProps {
   onLogin: (user: any) => void;
@@ -16,70 +14,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
-
-  useEffect(() => {
-    checkBiometricAvailability();
-  }, []);
-
-  const checkBiometricAvailability = async () => {
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const result = await NativeBiometric.isAvailable();
-        if (result.isAvailable) {
-          setIsBiometricAvailable(true);
-          // Auto trigger biometric if credentials saved
-          const hasCredentials = await NativeBiometric.getCredentials({
-             server: "monetra.id",
-          }).then(() => true).catch(() => false);
-          
-          if (hasCredentials) {
-             // Optional: handle auto-login
-          }
-        }
-      } catch (err) {
-        console.error("Biometric not available", err);
-      }
-    }
-  };
-
-  const handleBiometricLogin = async () => {
-    try {
-      setError("");
-      setLoading(true);
-
-      const result = await NativeBiometric.verifyIdentity({
-        reason: "Masuk ke Monetra",
-        title: "Otentikasi Biometrik",
-        subtitle: "Gunakan sidik jari atau FaceID Anda",
-        description: "Verifikasi identitas Anda untuk melanjutkan",
-      }).then(() => true).catch(() => false);
-
-      if (result) {
-        const credentials = await NativeBiometric.getCredentials({
-          server: "monetra.id",
-        });
-
-        const { data, error: loginError } = await supabase.auth.signInWithPassword({
-          email: credentials.username,
-          password: credentials.password,
-        });
-
-        if (loginError) throw loginError;
-
-        onLogin({
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.user_metadata.name || data.user.email,
-          role: data.user.user_metadata.role || "user",
-        });
-      }
-    } catch (err: any) {
-      setError("Biometrik gagal atau belum didaftarkan. Silakan login manual dulu.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     setError("");
@@ -105,7 +39,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       if (isLogin) {
-        // Login with Supabase
         const { data, error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -113,16 +46,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
         if (loginError) throw loginError;
         
-        // Save credentials for biometric if on mobile
-        if (Capacitor.isNativePlatform() && isBiometricAvailable) {
-           await NativeBiometric.setCredentials({
-              username: email,
-              password: password,
-              server: "monetra.id",
-              appName: "Monetra"
-           });
-        }
-
         onLogin({
           id: data.user.id,
           email: data.user.email,
@@ -130,7 +53,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           role: data.user.user_metadata.role || "user",
         });
       } else {
-        // Register with Supabase
         const { data, error: registerError } = await supabase.auth.signUp({
           email,
           password,
@@ -144,7 +66,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
         if (registerError) throw registerError;
 
-        // Sync to user_profiles table immediately
         if (data.user) {
           await supabase.from('user_profiles').insert([
             {
@@ -169,7 +90,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
       <div className="max-w-[1000px] w-full bg-white rounded-3xl shadow-2xl shadow-slate-200/50 flex overflow-hidden border border-slate-100">
-        {/* Illustration Side */}
         <div className="hidden lg:flex flex-1 bg-violet-600 p-12 flex-col justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-400/20 rounded-full -ml-32 -mb-32 blur-3xl" />
@@ -186,25 +106,24 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               Kelola kekayaan Anda <br /> dengan cerdas.
             </h1>
             <p className="text-violet-100 font-medium text-lg max-w-md">
-              Aman, transparan, dan pemantauan finansial komprehensif untuk Anda dan organisasi.
+              Aman, transparan, dan pemantauan finansial komprehensif untuk Anda.
             </p>
           </div>
 
           <div className="relative z-10 grid grid-cols-2 gap-4">
              <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
                 <PieChart className="text-white w-8 h-8 mb-4" />
-                <h3 className="text-white font-bold">Analisis Mendalam</h3>
-                <p className="text-violet-200 text-sm">Laporan visual untuk setiap transaksi.</p>
+                <h3 className="text-white font-bold text-sm">Analisis Mendalam</h3>
+                <p className="text-violet-200 text-[10px]">Laporan visual untuk transaksi.</p>
              </div>
              <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
                 <Wallet className="text-white w-8 h-8 mb-4" />
-                <h3 className="text-white font-bold">Anggaran Pintar</h3>
-                <p className="text-violet-200 text-sm">Kontrol pengeluaran Anda secara otomatis.</p>
+                <h3 className="text-white font-bold text-sm">Anggaran Pintar</h3>
+                <p className="text-violet-200 text-[10px]">Kontrol pengeluaran otomatis.</p>
              </div>
           </div>
         </div>
 
-        {/* Form Side */}
         <div className="flex-1 p-8 lg:p-16 flex flex-col justify-center">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-10 text-center lg:text-left">
@@ -222,6 +141,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               <AnimatePresence mode="wait">
                 {!isLogin && (
                   <motion.div
+                    key="register-name"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -279,33 +199,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               </div>
 
               {error && (
-                <div className={`p-4 rounded-xl text-sm font-bold ${error.includes("successful") ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"}`}>
+                <div className={`p-4 rounded-xl text-sm font-bold ${error.includes("successful") ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
                   {error}
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-violet-200 transition-all flex items-center justify-center gap-2 group active:scale-[0.98] disabled:opacity-70"
-                >
-                  {loading ? "Memproses..." : isLogin ? "Masuk" : "Daftar Akun"}
-                  {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
-                </button>
-
-                {isLogin && isBiometricAvailable && (
-                  <button
-                    type="button"
-                    onClick={handleBiometricLogin}
-                    disabled={loading}
-                    className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    <Fingerprint size={20} />
-                    Masuk dengan Sidik Jari
-                  </button>
-                )}
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-violet-200 transition-all flex items-center justify-center gap-2 group active:scale-[0.98] disabled:opacity-70"
+              >
+                {loading ? "Memproses..." : isLogin ? "Masuk" : "Daftar Akun"}
+                {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
+              </button>
             </form>
 
             <div className="mt-6">
@@ -352,4 +258,3 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 };
 
 export default Auth;
-

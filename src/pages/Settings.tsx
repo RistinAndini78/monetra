@@ -112,7 +112,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
       setIsUploadingPhoto(true);
       const { data: { user } } = await supabase.auth.getUser();
       const fileExt = file.name.split('.').pop();
-      const filePath = `avatars/${user?.id}.${fileExt}`;
+      const filePath = `${user?.id}/avatar.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('transaction-proofs')

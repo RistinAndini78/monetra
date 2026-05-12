@@ -175,9 +175,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-6 border-t border-slate-50">
           <button 
             onClick={onLogout}
-            className="flex items-center gap-4 px-6 py-3 text-slate-400 hover:text-rose-500 transition-all w-full font-bold text-sm group rounded-2xl hover:bg-rose-50"
+            className="flex items-center gap-4 px-6 py-3 text-rose-500 bg-rose-50 transition-all w-full font-bold text-sm group rounded-2xl hover:bg-rose-100/70 active:scale-95"
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 group-hover:bg-rose-100 transition-colors">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm transition-colors">
               <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
             </div>
             <span>Keluar Aplikasi</span>

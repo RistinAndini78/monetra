@@ -11,6 +11,11 @@ import Reports from "./pages/Reports";
 import Monitoring from "./pages/Monitoring";
 import AdminTransactions from "./pages/AdminTransactions";
 import SystemNotif from "./pages/SystemNotif";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminSecurity from "./pages/AdminSecurity";
+import Settings from "./pages/Settings";
+import PushNotificationService from "./lib/notifications";
+import { supabase } from "./lib/supabase";
 
 const App = () => {
   const [user, setUser] = useState<any>(null);

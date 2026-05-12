@@ -68,7 +68,7 @@ const App = () => {
       case "Reports":
         return <Reports />;
       case "Budgets":
-        return <Budgets />;
+        return <Budgets onNavigate={setActiveTab} />;
       case "Notifications":
         return <Bills />;
       case "Settings":
@@ -94,6 +94,7 @@ const App = () => {
         <Header 
           onMenuOpen={() => setSidebarOpen(true)} 
           userRole="user"
+          setActiveTab={setActiveTab}
         />
         <main className="flex-1">
           {renderContent()}

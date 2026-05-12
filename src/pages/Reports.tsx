@@ -33,6 +33,13 @@ const Reports: React.FC = () => {
   const [chartData, setChartData] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [categoryStats, setCategoryStats] = React.useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState(() => {
+    return localStorage.getItem('monetra_search_query') || '';
+  });
+
+  React.useEffect(() => {
+    localStorage.removeItem('monetra_search_query');
+  }, []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -291,6 +298,8 @@ const Reports: React.FC = () => {
                 <input 
                   type="text" 
                   placeholder="Cari transaksi..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-slate-50 border-none rounded-xl py-3 pl-12 pr-6 text-sm font-semibold outline-none focus:ring-2 focus:ring-violet-600/10 w-full md:w-64"
                 />
              </div>
@@ -310,7 +319,13 @@ const Reports: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {transactions.length > 0 ? transactions.slice(0, 10).map((tx) => (
+              {transactions.filter(tx => 
+                (tx.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (tx.category || "").toLowerCase().includes(searchQuery.toLowerCase())
+              ).length > 0 ? transactions.filter(tx => 
+                (tx.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (tx.category || "").toLowerCase().includes(searchQuery.toLowerCase())
+              ).slice(0, 10).map((tx) => (
                 <tr key={tx.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="py-6 text-sm font-bold text-slate-600">{tx.date}</td>
                   <td className="py-6">

@@ -156,23 +156,28 @@ const Bills: React.FC = () => {
         return;
       }
 
-      // 3. Buat transaksi pengeluaran otomatis
+      // 3. Get Current User ID
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData?.user?.id;
+
+      if (!currentUserId) throw new Error("Anda harus login untuk melakukan pembayaran.");
+
+      // 4. Buat transaksi pengeluaran otomatis
       const { error: txError } = await supabase.from('transactions').insert([{
         type: 'expense',
         amount: bill.amount,
         category: bill.category,
         date: new Date().toISOString().split('T')[0],
         description: `Pembayaran Tagihan: ${bill.name}`,
-        user_id: bill.user_id
+        user_id: currentUserId
       }]);
 
       if (txError) throw txError;
 
-      // 4. Update status tagihan jadi 'paid'
-      // 4. Send Notification
-      const { data: userData } = await supabase.auth.getUser();
+      // 5. Update status tagihan jadi 'paid'
+      // 6. Send Notification
       await supabase.from('notifications').insert([{
-        user_id: userData?.user?.id,
+        user_id: currentUserId,
         title: '✅ Tagihan Lunas!',
         message: `Tagihan "${bill.name}" sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(bill.amount)} telah dibayar.`,
         type: 'success'

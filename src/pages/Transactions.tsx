@@ -38,7 +38,14 @@ interface Transaction {
 
 const Transactions: React.FC = () => {
   const [filter, setFilter] = useState('Semua');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return localStorage.getItem('monetra_search_query') || '';
+  });
+
+  // Clear search query from storage after reading it
+  useEffect(() => {
+    localStorage.removeItem('monetra_search_query');
+  }, []);
   const [dbTransactions, setDbTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -66,7 +73,16 @@ const Transactions: React.FC = () => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData?.user?.id;
+
+      let query = supabase.from('transactions').select('*');
+      
+      if (currentUserId) {
+        query = query.eq('user_id', currentUserId);
+      }
+
+      const { data, error } = await query.order('date', { ascending: false });
       if (error) throw error;
       const mapped: Transaction[] = (data || []).map((tx: any) => ({
         id: tx.id, 
@@ -178,14 +194,26 @@ const Transactions: React.FC = () => {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    console.log("Attempting to delete transaction:", id);
-    if (!window.confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) return;
+    const { data: userData } = await supabase.auth.getUser();
+    const currentUserId = userData?.user?.id;
+    
+    console.log("DEBUG DELETE:", {
+      idToDelete: id,
+      currentUserId: currentUserId
+    });
+
+    if (!id) {
+      alert("Error: ID Transaksi tidak ditemukan!");
+      return;
+    }
+
+    if (!window.confirm(`Hapus transaksi dengan ID: ${id}?\n\nJika ini data bawaan (mock), pastikan Anda pemilik data ini.`)) return;
     
     try {
       setIsSubmitting(true);
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('transactions')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', id);
         
       if (error) {
@@ -193,10 +221,15 @@ const Transactions: React.FC = () => {
         throw new Error(error.message);
       }
       
-      console.log("Delete successful for:", id);
-      setDbTransactions(prev => prev.filter(t => t.id !== id));
-      await fetchTransactions();
-      PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah dihapus." });
+      console.log("Rows affected:", count);
+      
+      if (count === 0) {
+        alert("Peringatan: Transaksi tidak ditemukan di database atau Anda tidak memiliki izin untuk menghapusnya (RLS).");
+      } else {
+        setDbTransactions(prev => prev.filter(t => t.id !== id));
+        await fetchTransactions();
+        PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah dihapus." });
+      }
     } catch (err: any) {
       console.error("Full Delete Error:", err);
       alert("Gagal menghapus: " + (err.message || "Terjadi kesalahan pada server."));
@@ -463,7 +496,7 @@ const Transactions: React.FC = () => {
 
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Transaksi <span className="text-[10px] text-slate-300 font-normal ml-2">v1.0.4</span></h2>
           <p className="text-slate-400 font-medium text-xs mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
         </div>
         <div className="flex items-center gap-3">

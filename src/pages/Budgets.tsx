@@ -73,10 +73,14 @@ const Budgets: React.FC<BudgetsProps> = ({ onNavigate }) => {
     try {
       setLoading(true);
       
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData?.user?.id;
+
       const { data: budgetData, error: bError } = await supabase
         .from('budgets')
         .select('*')
-        .eq('period', activeTab) // Filter by period
+        .eq('period', activeTab) 
+        .eq('user_id', currentUserId)
         .order('category', { ascending: true });
 
       if (bError) throw bError;
@@ -103,6 +107,7 @@ const Budgets: React.FC<BudgetsProps> = ({ onNavigate }) => {
         .from('transactions')
         .select('category, amount')
         .eq('type', 'expense')
+        .eq('user_id', currentUserId)
         .gte('date', firstDay)
         .lte('date', lastDay);
 

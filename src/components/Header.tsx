@@ -8,10 +8,10 @@ import { id } from "date-fns/locale";
 interface HeaderProps {
   onMenuOpen: () => void;
   userRole?: "user" | "admin";
-  setUserRole?: (role: "user" | "admin") => void;
+  setActiveTab?: (tab: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuOpen, userRole }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuOpen, userRole, setActiveTab }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,6 +100,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuOpen, userRole }) => {
                type="text" 
                placeholder="Cari transaksi, budget, atau laporan..." 
                className="w-full pl-12 pr-6 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-violet-600/5 focus:border-violet-600 focus:bg-white outline-none text-sm transition-all text-slate-900 placeholder-slate-400"
+               onKeyDown={(e) => {
+                 if (e.key === 'Enter' && setActiveTab) {
+                   localStorage.setItem('monetra_search_query', (e.target as HTMLInputElement).value);
+                   setActiveTab('Transactions');
+                 }
+               }}
              />
            </div>
         </div>
@@ -212,7 +218,13 @@ export const Header: React.FC<HeaderProps> = ({ onMenuOpen, userRole }) => {
                   </div>
 
                   <div className="p-4 bg-slate-50/50 text-center">
-                    <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">
+                    <button 
+                      onClick={() => {
+                        setIsNotifOpen(false);
+                        if (setActiveTab) setActiveTab('Notifications');
+                      }}
+                      className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors"
+                    >
                       Lihat Semua Aktivitas
                     </button>
                   </div>

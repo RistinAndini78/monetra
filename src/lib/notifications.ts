@@ -38,9 +38,9 @@ class PushNotificationService {
   }
 
   /**
-   * Send a simple notification
+   * Send a simple notification (Background-friendly)
    */
-  static sendNotification(
+  static async sendNotification(
     title: string,
     options?: {
       body?: string;
@@ -49,29 +49,34 @@ class PushNotificationService {
       tag?: string;
       requireInteraction?: boolean;
     }
-  ): Notification | null {
-    if (!('Notification' in window)) {
-      console.warn('Notifications not supported');
-      return null;
+  ): Promise<void> {
+    if (!this.isSupported()) {
+      console.warn('Notifications or Service Workers not supported');
+      return;
     }
 
     if (Notification.permission !== 'granted') {
-      console.warn('Notification permission not granted');
-      return null;
+      const permission = await this.requestPermission();
+      if (permission !== 'granted') return;
     }
 
-    const notification = new Notification(title, {
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-192x192.png',
-      ...options,
-    });
-
-    notification.addEventListener('click', () => {
-      window.focus();
-      notification.close();
-    });
-
-    return notification;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        // Gunakan Service Worker agar bisa muncul di background (saat buka aplikasi lain)
+        await registration.showNotification(title, {
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          vibrate: [200, 100, 200], // Getar 
+          ...options,
+        });
+      } else {
+        // Fallback jika SW belum siap
+        new Notification(title, options);
+      }
+    } catch (error) {
+      console.error('Failed to show notification:', error);
+    }
   }
 
   /**

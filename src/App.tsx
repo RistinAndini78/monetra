@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminSecurity from "./pages/AdminSecurity";
 import Settings from "./pages/Settings";
 import Activity from "./pages/Activity";
+import PushNotificationService from "./lib/notifications";
 
 import { supabase } from "./lib/supabase";
 
@@ -68,6 +69,16 @@ const App = () => {
         if (!adminSession) setUser(null);
       }
     });
+
+    // Registrasi Service Worker & Izin Notifikasi
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('✅ Service Worker Aktif'))
+        .catch(err => console.error('❌ Service Worker Gagal', err));
+      
+      // Minta izin notifikasi
+      PushNotificationService.requestPermission();
+    }
 
     return () => subscription.unsubscribe();
   }, []);

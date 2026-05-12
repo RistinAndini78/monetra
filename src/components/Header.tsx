@@ -102,8 +102,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuOpen, userRole, setActiveT
                className="w-full pl-12 pr-6 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-violet-600/5 focus:border-violet-600 focus:bg-white outline-none text-sm transition-all text-slate-900 placeholder-slate-400"
                onKeyDown={(e) => {
                  if (e.key === 'Enter' && setActiveTab) {
-                   localStorage.setItem('monetra_search_query', (e.target as HTMLInputElement).value);
+                   const query = (e.target as HTMLInputElement).value;
+                   localStorage.setItem('monetra_search_query', query);
                    setActiveTab('Transactions');
+                   window.dispatchEvent(new CustomEvent('monetra-search', { detail: query }));
                  }
                }}
              />

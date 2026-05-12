@@ -68,6 +68,13 @@ const Transactions: React.FC = () => {
 
   useEffect(() => {
     fetchTransactions();
+
+    const handleGlobalSearch = (e: any) => {
+      setSearchQuery(e.detail);
+    };
+
+    window.addEventListener('monetra-search', handleGlobalSearch);
+    return () => window.removeEventListener('monetra-search', handleGlobalSearch);
   }, []);
 
   const fetchTransactions = async () => {

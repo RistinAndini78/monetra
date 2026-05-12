@@ -9,7 +9,7 @@ import {
   BellRing,
   Globe
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "motion";
 
 const SystemNotif: React.FC = () => {
   const [notifs, setNotifs] = useState([

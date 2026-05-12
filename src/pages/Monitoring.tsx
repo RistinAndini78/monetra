@@ -27,7 +27,7 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "motion";
 
 const mockTpsData = Array.from({ length: 20 }, (_, i) => ({
   time: `${14 + Math.floor(i/4)}:${(i%4)*15}`,

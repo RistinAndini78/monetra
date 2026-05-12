@@ -7,7 +7,7 @@ import {
   Search,
   MoreHorizontal,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "motion";
 import { supabase } from "../lib/supabase";
 
 const AdminDashboard: React.FC = () => {

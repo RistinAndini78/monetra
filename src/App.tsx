@@ -69,6 +69,8 @@ const App = () => {
         return <Reports />;
       case "Budgets":
         return <Budgets />;
+      case "Notifications":
+        return <Bills />;
       case "Settings":
         return <Settings userName={user?.name} userEmail={user?.email} />;
       default:

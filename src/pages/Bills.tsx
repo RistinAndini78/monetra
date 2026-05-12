@@ -212,8 +212,8 @@ const Bills: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Pengingat Tagihan</h2>
-          <p className="text-slate-400 font-medium">Kelola dan pantau kewajiban finansial rutin Anda.</p>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
+          <p className="text-slate-400 font-medium">Pantau semua pengingat dan kewajiban pembayaran Anda.</p>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -243,10 +243,10 @@ const Bills: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Kalender / Daftar Tagihan */}
-        <div className="lg:col-span-8 bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm">
-           <h3 className="text-xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
+        <div className="lg:col-span-8 bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+           <h3 className="text-2xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
            
            {loading ? (
              <div className="flex flex-col items-center py-20 text-slate-300">
@@ -258,37 +258,37 @@ const Bills: React.FC = () => {
                 <p className="text-slate-400 font-bold">Belum ada tagihan.</p>
              </div>
            ) : (
-             <div className="space-y-4">
+             <div className="space-y-6">
                 {bills.map((bill) => (
-                  <div key={bill.id} className={`flex items-center justify-between p-6 rounded-3xl border transition-all group ${bill.status === 'paid' ? 'bg-emerald-50/30 border-emerald-100 opacity-80' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
+                  <div key={bill.id} className={`flex items-center justify-between p-7 rounded-[32px] border transition-all group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
                      <div className="flex items-center gap-6">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-emerald-500 text-white' : 'bg-white text-violet-600'}`}>
-                           {bill.status === 'paid' ? <CheckCircle2 size={20} /> : <CreditCard size={20} />}
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
+                           {bill.status === 'paid' ? <CheckCircle2 size={24} /> : <CreditCard size={24} />}
                         </div>
                         <div>
-                           <h4 className={`font-black ${bill.status === 'paid' ? 'text-emerald-900 line-through' : 'text-slate-900'}`}>{bill.name}</h4>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                             {bill.status === 'paid' ? 'Lunas' : `Tempo: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
+                           <h4 className={`text-lg font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
+                           <p className={`text-xs font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
+                             {bill.status === 'paid' ? 'LUNAS' : `TEMPO: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
                            </p>
                         </div>
                      </div>
-                     <div className="flex items-center gap-6 sm:gap-10">
+                     <div className="flex items-center gap-12">
                         <div className="text-right">
-                           <p className={`font-black ${bill.status === 'paid' ? 'text-emerald-600' : 'text-slate-900'}`}>{formatCurrency(bill.amount)}</p>
+                           <p className="text-xl font-black text-slate-900">{formatCurrency(bill.amount)}</p>
                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                            {bill.status !== 'paid' && (
                              <button 
                                onClick={() => handlePayBill(bill)}
-                               className="px-4 py-2 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/20"
+                               className="px-5 py-2.5 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/20"
                              >
                                Bayar
                              </button>
                            )}
                            <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-all">
-                              <Trash2 size={18} />
+                              <Trash2 size={20} />
                            </button>
                         </div>
                      </div>
@@ -299,16 +299,18 @@ const Bills: React.FC = () => {
         </div>
 
         {/* Sidebar Info */}
-        <div className="lg:col-span-4 space-y-8">
-           <div className="bg-violet-600 p-10 rounded-[40px] text-white shadow-xl shadow-violet-600/20 relative overflow-hidden">
+        <div className="lg:col-span-4">
+           <div className="bg-[#7C3AED] p-10 rounded-[48px] text-white shadow-2xl shadow-violet-600/30 relative overflow-hidden min-h-[340px] flex flex-col justify-center">
               <div className="relative z-10">
-                 <Bell size={32} className="mb-6" />
-                 <h3 className="text-xl font-black mb-2">Email Pengingat</h3>
-                 <p className="text-violet-100 text-sm font-medium leading-relaxed">
+                 <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
+                    <Bell size={28} className="text-white" />
+                 </div>
+                 <h3 className="text-2xl font-black mb-4 tracking-tight">Email Pengingat</h3>
+                 <p className="text-violet-100 text-sm font-medium leading-relaxed opacity-90">
                     Setiap tagihan yang Anda buat akan otomatis mengirimkan email pengingat 3 hari sebelum tanggal jatuh tempo.
                  </p>
               </div>
-              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
            </div>
         </div>
       </div>

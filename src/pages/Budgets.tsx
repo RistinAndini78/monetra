@@ -173,7 +173,7 @@ const Budgets: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Anggaran / Budget</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Anggaran / Budget</h2>
           <p className="text-slate-500 font-medium mt-1">Pantau sisa anggaran Anda sesuai periode.</p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-3">
@@ -195,7 +195,7 @@ const Budgets: React.FC = () => {
              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pemakaian Anggaran {activeTab}</p>
-                   <h3 className="text-4xl font-black text-slate-900 mb-4">{formatCurrency(totalSpent)}</h3>
+                   <h3 className="text-2xl font-black text-slate-900 mb-4">{formatCurrency(totalSpent)}</h3>
                    <p className="text-slate-400 text-sm font-bold">Terpakai dari {formatCurrency(totalBudget)}</p>
                 </div>
                 <div className="flex flex-col justify-end">

@@ -212,7 +212,7 @@ const Bills: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
           <p className="text-slate-400 font-medium">Pantau semua pengingat dan kewajiban pembayaran Anda.</p>
         </div>
         <div className="flex items-center gap-4">
@@ -236,7 +236,7 @@ const Bills: React.FC = () => {
           <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px]">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
             <div>
-              <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
+              <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
               <p className="text-[10px] font-bold text-slate-300 mt-1 uppercase tracking-wider">{stat.trend}</p>
             </div>
           </div>
@@ -246,7 +246,7 @@ const Bills: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Kalender / Daftar Tagihan */}
         <div className="lg:col-span-8 bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-           <h3 className="text-2xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
+           <h3 className="text-xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
            
            {loading ? (
              <div className="flex flex-col items-center py-20 text-slate-300">
@@ -305,7 +305,7 @@ const Bills: React.FC = () => {
                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
                     <Bell size={28} className="text-white" />
                  </div>
-                 <h3 className="text-2xl font-black mb-4 tracking-tight">Email Pengingat</h3>
+                 <h3 className="text-xl font-black mb-4 tracking-tight">Email Pengingat</h3>
                  <p className="text-violet-100 text-sm font-medium leading-relaxed opacity-90">
                     Setiap tagihan yang Anda buat akan otomatis mengirimkan email pengingat 3 hari sebelum tanggal jatuh tempo.
                  </p>

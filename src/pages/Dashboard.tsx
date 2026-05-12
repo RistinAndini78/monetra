@@ -248,7 +248,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight whitespace-nowrap">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">
               {getGreeting()}, {userName || 'Pengguna'}
             </h1>
             <button 
@@ -263,7 +263,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
         </div>
         <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm min-w-[280px]">
            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Aset Bersih</p>
-           <h2 className="text-3xl font-black text-slate-900 tracking-tight">{formatCurrency(balance)}</h2>
+           <h2 className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(balance)}</h2>
         </div>
       </div>
 

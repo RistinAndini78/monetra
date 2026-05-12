@@ -151,7 +151,7 @@ const Analysis: React.FC = () => {
     <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Analisis Keuangan</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Analisis Keuangan</h2>
           <p className="text-slate-400 font-medium tracking-tight">Wawasan mendalam tentang pola finansial Anda.</p>
         </div>
         <div className="flex items-center gap-4">
@@ -272,15 +272,15 @@ const Analysis: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
          <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100">
             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Total Pemasukan</p>
-            <h4 className="text-3xl font-black text-emerald-900">{formatCurrency(stats.totalIncome)}</h4>
+            <h4 className="text-2xl font-black text-emerald-900">{formatCurrency(stats.totalIncome)}</h4>
          </div>
          <div className="bg-rose-50 p-8 rounded-[32px] border border-rose-100">
             <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4">Total Pengeluaran</p>
-            <h4 className="text-3xl font-black text-rose-900">{formatCurrency(stats.totalExpenses)}</h4>
+            <h4 className="text-2xl font-black text-rose-900">{formatCurrency(stats.totalExpenses)}</h4>
          </div>
          <div className="bg-violet-50 p-8 rounded-[32px] border border-violet-100">
             <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-4">Tingkat Tabungan</p>
-            <h4 className="text-3xl font-black text-violet-900">{stats.savingsRate}%</h4>
+            <h4 className="text-2xl font-black text-violet-900">{stats.savingsRate}%</h4>
          </div>
       </div>
     </div>

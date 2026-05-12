@@ -228,7 +228,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     <div className="p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Pengaturan Akun</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pengaturan Akun</h2>
           <p className="text-slate-400 font-medium">Kelola informasi profil dan preferensi akun Anda.</p>
         </div>
       </header>

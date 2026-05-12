@@ -379,7 +379,7 @@ const Transactions: React.FC = () => {
 
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h2>
           <p className="text-slate-500 font-medium mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -397,15 +397,15 @@ const Transactions: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Masuk</p>
-          <p className="text-2xl font-black text-emerald-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome)}</p>
+          <p className="text-xl font-black text-emerald-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome)}</p>
         </div>
         <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Keluar</p>
-          <p className="text-2xl font-black text-rose-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalExpense)}</p>
+          <p className="text-xl font-black text-rose-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalExpense)}</p>
         </div>
         <div className="bg-violet-600 p-6 rounded-[32px] shadow-lg shadow-violet-600/20 text-white">
           <p className="text-[10px] font-black text-violet-200 uppercase tracking-widest mb-1 text-center">Selisih Kas</p>
-          <p className="text-2xl font-black text-white tabular-nums text-center">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome - totalExpense)}</p>
+          <p className="text-xl font-black text-white tabular-nums text-center">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome - totalExpense)}</p>
         </div>
       </div>
 

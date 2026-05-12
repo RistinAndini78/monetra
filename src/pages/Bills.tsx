@@ -331,7 +331,7 @@ const Bills: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xl"
+              className="fixed inset-0 bg-black/10 backdrop-blur-[20px] z-[-1]"
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}

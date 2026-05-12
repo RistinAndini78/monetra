@@ -29,6 +29,7 @@ interface Transaction {
   type: 'income' | 'expense';
   status: 'completed' | 'pending';
   catatan?: string;
+  proof_url?: string;
 }
 
 const Transactions: React.FC = () => {
@@ -43,8 +44,11 @@ const Transactions: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newTx, setNewTx] = useState({
-    judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense' as any, date: new Date().toISOString().split('T')[0]
+    judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense' as any, date: new Date().toISOString().split('T')[0], proof_url: ''
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const kategoriPemasukan = ['Gaji', 'Bonus', 'Investasi', 'Lainnya'];
   const kategoriPengeluaran = ['Makanan', 'Transport', 'Belanja', 'Kesehatan', 'Lainnya'];
@@ -125,8 +129,35 @@ const Transactions: React.FC = () => {
       setIsSubmitting(true);
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
+
+      let proofUrl = null;
+      if (selectedImage) {
+        const fileExt = selectedImage.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('transaction-proofs')
+          .upload(filePath, selectedImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('transaction-proofs')
+          .getPublicUrl(filePath);
+        
+        proofUrl = publicUrl;
+      }
+
       const { error } = await supabase.from('transactions').insert([{
-        description: newTx.judul, catatan: newTx.catatan || null, category: newTx.category, amount: Number(newTx.amount), type: newTx.type, date: newTx.date, user_id: userId
+        description: newTx.judul, 
+        catatan: newTx.catatan || null, 
+        category: newTx.category, 
+        amount: Number(newTx.amount), 
+        type: newTx.type, 
+        date: newTx.date, 
+        user_id: userId,
+        proof_url: proofUrl
       }]);
       if (error) throw error;
       
@@ -146,7 +177,9 @@ const Transactions: React.FC = () => {
       }]);
 
       setIsModalOpen(false);
-      setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0] });
+      setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0], proof_url: '' });
+      setSelectedImage(null);
+      setImagePreview(null);
       fetchTransactions();
     } catch (err: any) {
       alert(err.message);
@@ -190,7 +223,7 @@ const Transactions: React.FC = () => {
       // Validate file
       const validation = FileService.validateFile(file, {
         maxSize: 5 * 1024 * 1024,
-        acceptedTypes: ['text/csv', 'application/json', '.csv', '.json']
+        acceptedTypes: ['text/csv', 'application/json', 'image/jpeg', 'image/png', '.csv', '.json', '.jpg', '.png']
       });
 
       if (!validation.valid) {
@@ -205,8 +238,14 @@ const Transactions: React.FC = () => {
       } else if (file.name.endsWith('.json')) {
         const json = await FileService.parseJSON(file);
         importData = Array.isArray(json) ? json : [json];
+      } else if (file.type.startsWith('image/')) {
+        // Handle as image proof for a new transaction
+        setSelectedImage(file);
+        setImagePreview(URL.createObjectURL(file));
+        setIsModalOpen(true);
+        return;
       } else {
-        alert('Format file tidak didukung. Gunakan CSV atau JSON.');
+        alert('Format file tidak didukung. Gunakan Gambar, CSV atau JSON.');
         return;
       }
 
@@ -284,6 +323,37 @@ const Transactions: React.FC = () => {
                     <select value={newTx.category} onChange={(e) => setNewTx({...newTx, category: e.target.value})} className="input-field w-full text-sm font-bold">{currentKategori.map(k => <option key={k} value={k}>{k}</option>)}</select>
                     <input type="date" required value={newTx.date} onChange={(e) => setNewTx({...newTx, date: e.target.value})} className="input-field w-full text-sm font-bold" />
                   </div>
+                  
+                  {/* Image Upload Field */}
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bukti Pembayaran (Opsional)</label>
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-violet-600/30 hover:bg-violet-50 transition-all overflow-hidden min-h-[100px]"
+                    >
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-xl" />
+                      ) : (
+                        <>
+                          <Upload size={20} className="text-slate-300" />
+                          <span className="text-[10px] font-bold text-slate-400">Klik untuk upload foto bukti</span>
+                        </>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedImage(file);
+                          setImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
                 <button type="submit" disabled={isSubmitting} className="btn-primary w-full">{isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}</button>
               </form>
@@ -326,9 +396,9 @@ const Transactions: React.FC = () => {
           </div>
           <div className="text-center">
             <p className="font-black text-slate-900 text-lg">
-              {isDragOver ? 'Lepas file untuk diimport' : 'Drag & Drop file transaksi di sini'}
+              {isDragOver ? 'Lepas file untuk diimport' : 'Drag & Drop file di sini'}
             </p>
-            <p className="text-slate-500 text-sm mt-1">CSV atau JSON format • Max 5MB</p>
+            <p className="text-slate-500 text-sm mt-1">Gambar, CSV atau JSON format • Max 5MB</p>
           </div>
         </div>
       </div>
@@ -392,7 +462,14 @@ const Transactions: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{tx.name}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{format(new Date(tx.date), "dd MMM yyyy")}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-[10px] text-slate-400">{format(new Date(tx.date), "dd MMM yyyy")}</p>
+                            {tx.proof_url && (
+                              <a href={tx.proof_url} target="_blank" rel="noreferrer" className="text-[10px] font-black text-violet-600 uppercase tracking-widest hover:underline flex items-center gap-1">
+                                • Lihat Bukti
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>

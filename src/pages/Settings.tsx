@@ -36,6 +36,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -120,6 +121,11 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   };
 
   const uploadFile = async (file: File) => {
+    // Tampilkan preview lokal dulu untuk feedback instan
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImage(reader.result as string);
+    reader.readAsDataURL(file);
+
     try {
       setIsUploadingPhoto(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -152,13 +158,25 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    // Tampilkan preview lokal dulu
-    const reader = new FileReader();
-    reader.onloadend = () => setProfileImage(reader.result as string);
-    reader.readAsDataURL(file);
-
     await uploadFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      await uploadFile(file);
+    }
   };
 
   const menuItems = [
@@ -204,12 +222,16 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                     onChange={handleFileChange} 
                     className="hidden" 
                     accept="image/*"
-                    capture="environment"
                   />
                    <div className="flex flex-col sm:flex-row gap-4">
-                    <div 
+                     <div 
                       onClick={handleUploadClick}
-                      className="border-2 border-dashed border-slate-100 rounded-[24px] p-6 flex flex-col items-center justify-center group cursor-pointer hover:border-violet-600/40 hover:bg-violet-600/5 transition-all flex-1"
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`border-2 border-dashed rounded-[24px] p-6 flex flex-col items-center justify-center group cursor-pointer transition-all flex-1 ${
+                        isDragging ? 'border-violet-600 bg-violet-600/10 scale-[1.02]' : 'border-slate-100 hover:border-violet-600/40 hover:bg-violet-600/5'
+                      }`}
                     >
                       {isUploadingPhoto ? (
                         <>
@@ -218,8 +240,8 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                         </>
                       ) : (
                         <>
-                          <Upload className="text-slate-300 mb-2 group-hover:text-violet-600" size={24} />
-                          <span className="text-xs font-black text-slate-400 group-hover:text-violet-600 tracking-widest uppercase text-center">Pilih Galeri</span>
+                          <Upload className={`mb-2 transition-colors ${isDragging ? 'text-violet-600' : 'text-slate-300 group-hover:text-violet-600'}`} size={24} />
+                          <span className={`text-xs font-black tracking-widest uppercase text-center transition-colors ${isDragging ? 'text-violet-600' : 'text-slate-400 group-hover:text-violet-600'}`}>Pilih / Seret Galeri</span>
                         </>
                       )}
                     </div>
@@ -380,6 +402,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                          ref={videoRef} 
                          autoPlay 
                          playsInline 
+                         muted
                          className="w-full h-full object-cover rounded-3xl"
                        />
                        <canvas ref={canvasRef} width="400" height="400" className="hidden" />

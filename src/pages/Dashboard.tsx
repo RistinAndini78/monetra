@@ -22,8 +22,6 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, 
   BarChart, Bar, XAxis, Tooltip, 
 } from "recharts";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 interface DashboardProps {
   onViewAll?: () => void;
@@ -143,66 +141,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
     count: transactions.filter(t => t.category === name).length
   })).sort((a, b) => b.val - a.val).slice(0, 6);
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    
-    // Header PDF
-    doc.setFontSize(22);
-    doc.setTextColor(124, 58, 237); // Ungu Monetra
-    doc.text("MONETRA", 105, 20, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text("Laporan Ringkasan Keuangan Pribadi", 105, 28, { align: "center" });
-    
-    doc.setDrawColor(241, 245, 249);
-    doc.line(20, 35, 190, 35);
-
-    // Informasi User
-    doc.setFontSize(12);
-    doc.setTextColor(30, 41, 59);
-    doc.text(`Nama Pengguna: ${userName || 'Pengguna'}`, 20, 45);
-    doc.text(`Tanggal Laporan: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 20, 52);
-
-    // Ringkasan Statistik
-    doc.setFillColor(248, 250, 252);
-    doc.rect(20, 60, 170, 30, 'F');
-    
-    doc.setFontSize(10);
-    doc.text("TOTAL PEMASUKAN", 30, 70);
-    doc.text("TOTAL PENGELUARAN", 85, 70);
-    doc.text("SISA SALDO", 145, 70);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(16, 185, 129); // Emerald
-    doc.text(formatCurrency(totalIncome), 30, 80);
-    
-    doc.setTextColor(225, 29, 72); // Rose
-    doc.text(formatCurrency(totalExpense), 85, 80);
-    
-    doc.setTextColor(30, 41, 59);
-    doc.text(formatCurrency(balance), 145, 80);
-
-    // Tabel Transaksi
-    const tableData = transactions.map(tx => [
-      format(new Date(tx.date), "dd/MM/yyyy"),
-      tx.description || tx.category,
-      tx.category,
-      tx.type === 'income' ? 'Masuk' : 'Keluar',
-      formatCurrency(tx.amount)
-    ]);
-
-    autoTable(doc, {
-      startY: 100,
-      head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Jumlah']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [124, 58, 237], textColor: [255, 255, 255] },
-      styles: { fontSize: 9 }
-    });
-
-    doc.save(`Laporan_Monetra_${new Date().getTime()}.pdf`);
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -251,13 +189,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
             <h1 className="text-3xl font-black text-slate-900 tracking-tight whitespace-nowrap">
               {getGreeting()}, {userName || 'Pengguna'}
             </h1>
-            <button 
-              onClick={handleExportPDF}
-              className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95"
-            >
-              <ArrowDownRight size={14} className="text-violet-600" />
-              Export Laporan
-            </button>
           </div>
           <p className="text-slate-500 font-medium">Berikut adalah analisis modular real-time untuk aset dan likuiditas Anda.</p>
         </div>

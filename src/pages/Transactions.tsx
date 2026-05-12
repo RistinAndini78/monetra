@@ -12,13 +12,17 @@ import {
   Download,
   Trash2,
   Edit2,
-  Upload
+  Upload,
+  FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import FileService from "../lib/fileService";
 import PushNotificationService from "../lib/notifications";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Transaction {
   id: string;
@@ -161,8 +165,7 @@ const Transactions: React.FC = () => {
       const { error } = await supabase
         .from('transactions')
         .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+        .eq('id', id);
         
       if (error) throw error;
       
@@ -214,6 +217,54 @@ const Transactions: React.FC = () => {
     // Send notification
     PushNotificationService.sendNotification('📥 Export Berhasil', {
       body: `${exportData.length} transaksi telah diekspor ke CSV`
+    });
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const formatCurrencyLocal = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+    
+    // Header PDF
+    doc.setFontSize(22);
+    doc.setTextColor(124, 58, 237);
+    doc.text("MONETRA", 105, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Laporan Riwayat Transaksi", 105, 28, { align: "center" });
+    
+    doc.setDrawColor(241, 245, 249);
+    doc.line(20, 35, 190, 35);
+
+    // Ringkasan
+    doc.setFontSize(12);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`Total Pemasukan: ${formatCurrencyLocal(totalIncome)}`, 20, 45);
+    doc.text(`Total Pengeluaran: ${formatCurrencyLocal(totalExpense)}`, 20, 52);
+    doc.text(`Sisa Saldo: ${formatCurrencyLocal(totalIncome - totalExpense)}`, 20, 59);
+
+    // Tabel Transaksi
+    const tableData = filteredTransactions.map(tx => [
+      format(new Date(tx.date), "dd/MM/yyyy"),
+      tx.name,
+      tx.category,
+      tx.type === 'income' ? 'Masuk' : 'Keluar',
+      formatCurrencyLocal(tx.amount)
+    ]);
+
+    autoTable(doc, {
+      startY: 70,
+      head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Jumlah']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [124, 58, 237], textColor: [255, 255, 255] },
+      styles: { fontSize: 9 }
+    });
+
+    doc.save(`Laporan_Monetra_Transaksi_${new Date().getTime()}.pdf`);
+    
+    PushNotificationService.sendNotification('📥 Export Berhasil', {
+      body: `Laporan PDF telah berhasil diunduh.`
     });
   };
 
@@ -301,22 +352,32 @@ const Transactions: React.FC = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col z-10"
+              className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl flex flex-col z-10 max-h-[90vh] overflow-hidden"
             >
-              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <h3 className="text-xl font-black text-slate-900 tracking-tight">{editingId ? "✏️ Edit Transaksi" : "✨ Transaksi Baru"}</h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-50 rounded-xl"><X size={20} /></button>
               </div>
-              <form onSubmit={handleAddTransaction} className="p-8 space-y-6">
+              <div className="overflow-y-auto p-8 custom-scrollbar">
+                <form onSubmit={handleAddTransaction} className="space-y-6">
                 <div className="p-1 bg-slate-100 rounded-2xl grid grid-cols-2 gap-1">
                   <button type="button" onClick={() => setNewTx({...newTx, type: 'income', category: 'Gaji'})} className={`py-3 rounded-xl font-bold text-xs transition-all ${newTx.type === 'income' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>Pemasukan</button>
                   <button type="button" onClick={() => setNewTx({...newTx, type: 'expense', category: 'Makanan'})} className={`py-3 rounded-xl font-bold text-xs transition-all ${newTx.type === 'expense' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500'}`}>Pengeluaran</button>
                 </div>
                 <div className="space-y-4">
                   <input type="text" required value={newTx.judul} onChange={(e) => setNewTx({...newTx, judul: e.target.value})} className="input-field w-full" placeholder="Nama Transaksi" />
-                  <div className="relative">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-violet-600">Rp</span>
-                    <input type="number" required value={newTx.amount} onChange={(e) => setNewTx({...newTx, amount: e.target.value})} className="input-field w-full pl-14 font-black text-xl" placeholder="0" />
+                  <div className="relative group">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10">
+                      <span className="font-black text-violet-600 text-lg">Rp.</span>
+                    </div>
+                    <input 
+                      type="number" 
+                      required 
+                      value={newTx.amount} 
+                      onChange={(e) => setNewTx({...newTx, amount: e.target.value})} 
+                      className="w-full pl-20 pr-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-600/5 transition-all font-black text-2xl text-slate-900" 
+                      placeholder="0" 
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <select value={newTx.category} onChange={(e) => setNewTx({...newTx, category: e.target.value})} className="input-field w-full text-sm font-bold">{currentKategori.map(k => <option key={k} value={k}>{k}</option>)}</select>
@@ -370,8 +431,9 @@ const Transactions: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <button type="submit" disabled={isSubmitting} className="btn-primary w-full">{isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}</button>
-              </form>
+                <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-4 rounded-2xl shadow-xl shadow-violet-600/20">{isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}</button>
+                </form>
+              </div>
             </motion.div>
           </div>
         )}
@@ -383,6 +445,13 @@ const Transactions: React.FC = () => {
           <p className="text-slate-500 font-medium mt-1">Manajemen seluruh aktivitas keuangan Anda.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={handleExportPDF}
+            className="p-3 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:text-slate-900" 
+            title="Export transactions as PDF"
+          >
+            <FileText size={20} />
+          </button>
           <button 
             onClick={handleExportTransactions}
             className="p-3 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:text-slate-900" 

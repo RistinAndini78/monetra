@@ -243,10 +243,10 @@ const Bills: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Kalender / Daftar Tagihan */}
-        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-           <h3 className="text-xl font-black text-slate-900 mb-8">Daftar Tagihan Aktif</h3>
+        <div className="lg:col-span-8 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+           <h3 className="text-lg font-black text-slate-900 mb-6">Daftar Tagihan Aktif</h3>
            
            {loading ? (
              <div className="flex flex-col items-center py-20 text-slate-300">
@@ -262,20 +262,20 @@ const Bills: React.FC = () => {
                 {bills.map((bill) => (
                   <div key={bill.id} className={`flex items-center justify-between p-6 rounded-[32px] border transition-all group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
                      <div className="flex items-center gap-6">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
-                           {bill.status === 'paid' ? <CheckCircle2 size={24} /> : <CreditCard size={24} />}
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
+                           {bill.status === 'paid' ? <CheckCircle2 size={20} /> : <CreditCard size={20} />}
                         </div>
                         <div>
-                           <h4 className={`text-base font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
-                           <p className={`text-[10px] font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
+                           <h4 className={`text-sm font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
+                           <p className={`text-[9px] font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
                              {bill.status === 'paid' ? 'LUNAS' : `TEMPO: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
                            </p>
                         </div>
                      </div>
-                     <div className="flex items-center gap-12">
+                     <div className="flex items-center gap-10">
                         <div className="text-right">
-                           <p className="text-lg font-black text-slate-900">{formatCurrency(bill.amount)}</p>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
+                           <p className="text-base font-black text-slate-900">{formatCurrency(bill.amount)}</p>
+                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
                         </div>
                         
                         <div className="flex items-center gap-3">
@@ -298,6 +298,20 @@ const Bills: React.FC = () => {
            )}
         </div>
 
+        {/* Sidebar Info */}
+        <div className="lg:col-span-4">
+           <div className="bg-[#7C3AED] p-8 rounded-[40px] text-white shadow-xl shadow-violet-600/20 relative overflow-hidden flex flex-col justify-center">
+              <div className="relative z-10">
+                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-6">
+                    <Bell size={24} className="text-white" />
+                 </div>
+                 <h3 className="text-lg font-black mb-3 tracking-tight">Informasi</h3>
+                 <p className="text-violet-100 text-xs font-medium leading-relaxed opacity-90">
+                    Sistem akan memantau setiap tagihan dan memberikan peringatan tepat waktu untuk membantu Anda menghindari denda keterlambatan.
+                 </p>
+              </div>
+              <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+           </div>
         </div>
       </div>
 

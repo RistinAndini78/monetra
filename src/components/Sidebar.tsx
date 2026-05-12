@@ -108,8 +108,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="px-6 mb-6">
-            <div className="bg-slate-50 border border-slate-100 p-4 rounded-3xl flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-slate-100/50">
-              <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm shrink-0 z-10 bg-violet-600 flex items-center justify-center overflow-hidden">
+            <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-[24px] flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-slate-100/50">
+              <div className="w-10 h-10 rounded-[18px] border-2 border-white shadow-sm shrink-0 z-10 bg-violet-600 flex items-center justify-center overflow-hidden">
                 <img 
                   src={avatarUrl || (DEFAULT_AVATAR + (userName || "User"))} 
                   alt="Avatar" 

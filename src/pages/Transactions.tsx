@@ -452,7 +452,20 @@ const Transactions: React.FC = () => {
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bukti Struk Pembayaran (Wajib/Opsional)</label>
                       <div 
                         onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(false); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsDragOver(false);
+                          const file = e.dataTransfer.files?.[0];
+                          if (file && file.type.startsWith('image/')) {
+                            setSelectedImage(file);
+                            setImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
                         className={`border-2 border-dashed rounded-[32px] p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all overflow-hidden min-h-[180px] ${
+                          isDragOver ? 'border-violet-600 bg-violet-50 scale-[1.02]' :
                           imagePreview 
                             ? 'border-emerald-500 bg-emerald-50/30' 
                             : 'border-slate-200 bg-slate-50 hover:border-violet-600 hover:bg-violet-50/50'

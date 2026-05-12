@@ -97,10 +97,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
     } catch (err) { console.error("Smart check failed", err); }
   };
 
-  // 1. Kalkulasi Statistik Utama
-  const totalIncome = transactions.filter(tx => tx.type === 'income').reduce((acc, curr) => acc + Number(curr.amount), 0);
-  const totalExpense = transactions.filter(tx => tx.type === 'expense').reduce((acc, curr) => acc + Number(curr.amount), 0);
-  const balance = totalIncome - totalExpense;
+  // 1. Kalkulasi Statistik Utama (Filter Per Bulan)
+  const currentMonthKey = format(new Date(), 'yyyy-MM');
+  
+  const thisMonthIncome = transactions
+    .filter(tx => tx.type === 'income' && tx.date.startsWith(currentMonthKey))
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+    
+  const thisMonthExpense = transactions
+    .filter(tx => tx.type === 'expense' && tx.date.startsWith(currentMonthKey))
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+    
+  const totalIncome = thisMonthIncome;
+  const totalExpense = thisMonthExpense;
+  const balance = transactions.filter(tx => tx.type === 'income').reduce((acc, curr) => acc + Number(curr.amount), 0) - transactions.filter(tx => tx.type === 'expense').reduce((acc, curr) => acc + Number(curr.amount), 0);
 
   // 2. Kalkulasi Data Chart Pie (Kategori)
   const expensesByCategory = transactions

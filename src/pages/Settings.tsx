@@ -145,10 +145,27 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                   />
                </div>
 
-               <div className="flex justify-end gap-4 pt-10">
-                  <button className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Batalkan Perubahan</button>
-                  <button className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all">Simpan Perubahan</button>
-               </div>
+                <div className="flex justify-end gap-4 pt-10">
+                   <button 
+                    type="button"
+                    className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest"
+                   >
+                    Batalkan
+                   </button>
+                   <button 
+                    onClick={async () => {
+                      const newName = (document.querySelector('input[defaultValue="' + userName + '"]') as HTMLInputElement)?.value;
+                      const { error } = await supabase.auth.updateUser({
+                        data: { name: newName || userName }
+                      });
+                      if (error) alert("Gagal update: " + error.message);
+                      else alert("Profil berhasil diperbarui! Silakan refresh halaman.");
+                    }}
+                    className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all"
+                   >
+                    Simpan Perubahan
+                   </button>
+                </div>
             </div>
           </div>
         );
@@ -186,8 +203,17 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                      <div className="h-2 flex-1 bg-violet-600 rounded-full" />
                      <div className="h-2 flex-1 bg-slate-100 rounded-full" />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Terakhir diubah: 3 bulan lalu</p>
-                  <button className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-xs hover:bg-slate-800 transition-all uppercase tracking-widest">Ubah Kata Sandi</button>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Terakhir diubah: baru saja</p>
+                  <button 
+                    onClick={async () => {
+                      const { error } = await supabase.auth.resetPasswordForEmail(userEmail || '');
+                      if (error) alert("Gagal: " + error.message);
+                      else alert("Link reset password telah dikirim ke email Anda!");
+                    }}
+                    className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-xs hover:bg-slate-800 transition-all uppercase tracking-widest"
+                  >
+                    Ubah Kata Sandi
+                  </button>
                </div>
             </div>
           </div>

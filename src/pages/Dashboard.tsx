@@ -406,10 +406,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
 
       {/* BOTTOM SECTION: TRANSAKSI PENTING */}
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
-            <h3 className="text-lg font-black text-slate-900">Transaksi Terbaru</h3>
-            <button onClick={onViewAll} className="text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] hover:underline">Lihat Semua</button>
-         </div>
+         <div className="flex items-end justify-between mb-8">
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Transaksi Terbaru</h2>
+          <button 
+            onClick={() => {
+              // Trigger tab change via App state or just scroll/refresh if handled
+              const tabBtn = document.querySelector('[data-tab="Transactions"]') as HTMLButtonElement;
+              if (tabBtn) tabBtn.click();
+            }}
+            className="text-[10px] font-black text-violet-600 hover:text-violet-700 transition-colors uppercase tracking-[0.2em]"
+          >
+            Lihat Semua
+          </button>
+        </div>
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {transactions.slice(0, 3).map((tx, i) => (
               <div key={i} className="bg-white border border-slate-100 p-8 rounded-[32px] shadow-sm space-y-6 group hover:border-violet-100 transition-all hover:shadow-xl hover:shadow-slate-200/20">

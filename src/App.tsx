@@ -64,7 +64,8 @@ const App = () => {
           role: session.user.user_metadata.role || "user",
         });
       } else {
-        setUser(null);
+        const adminSession = localStorage.getItem("monetra_admin_session");
+        if (!adminSession) setUser(null);
       }
     });
 

@@ -11,8 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import femaleAvatar from "../assets/female.jpg";
-import maleAvatar from "../assets/male.jpg";
+const DEFAULT_AVATAR = "https://ui-avatars.com/api/?background=7C3AED&color=fff&name=";
 import { supabase } from "../lib/supabase";
 
 interface SettingsProps {
@@ -170,11 +169,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
             <div className="relative group">
               <div className="w-40 h-40 rounded-[40px] overflow-hidden border-4 border-[#F8F9FF] shadow-2xl relative bg-violet-600">
                 <img 
-                  src={profileImage || (
-                    (userName?.toLowerCase().match(/(i|a)$/) || userName?.toLowerCase().match(/(putri|sari|ayu|dewi|andini|rina|maya|fitri|lestari|indah|amalia)/)) 
-                    ? femaleAvatar 
-                    : maleAvatar
-                  )} 
+                  src={profileImage || (DEFAULT_AVATAR + (formData.name || "User"))} 
                   alt="Profil" 
                   className="w-full h-full object-cover bg-slate-900 shadow-inner group-hover:scale-110 transition-transform duration-500"
                 />

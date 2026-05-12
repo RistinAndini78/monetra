@@ -11,8 +11,10 @@ import {
   Car,
   ShoppingBag,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Bell
 } from "lucide-react";
+import PushNotificationService from "../lib/notifications";
 import { motion } from "motion/react";
 import { supabase } from "../lib/supabase";
 import { format, subMonths } from "date-fns";

@@ -31,7 +31,6 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "user@monetra.id", onUserUpdate }) => {
-  const [activeSubTab, setActiveSubTab] = useState("Informasi Pribadi");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -179,14 +178,9 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     }
   };
 
-  const menuItems = [
-    { name: "Informasi Pribadi", icon: <User size={18} /> },
-  ];
 
   const renderSubContent = () => {
-    switch (activeSubTab) {
-      case "Informasi Pribadi":
-        return (
+    return (
           <div className="space-y-10">
             <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm">
               <div className="flex flex-col md:flex-row items-center gap-12">
@@ -258,13 +252,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
             </div>
 
             <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm">
-               <div className="flex items-center justify-between mb-10">
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Informasi Pribadi</h3>
-                  <div className="bg-violet-600/5 px-4 py-2 rounded-xl flex items-center gap-2">
-                     <CheckCircle2 className="text-violet-600" size={14} />
-                     <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest">Status Premium</span>
-                  </div>
-               </div>
                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-3">
@@ -428,8 +415,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
               )}
             </AnimatePresence>
           </div>
-        );
-    }
+    );
   };
 
   return (
@@ -441,44 +427,10 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
         </div>
       </header>
 
-      <div className="flex flex-col lg:flex-row gap-12">
-        {/* Navigasi Sidebar */}
-        <div className="lg:w-72 shrink-0">
-          <div className="bg-white p-4 rounded-[40px] border border-slate-100 shadow-sm space-y-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => setActiveSubTab(item.name)}
-                className={`w-full flex items-center justify-between px-6 py-5 rounded-[24px] text-sm font-black transition-all ${
-                  activeSubTab === item.name
-                    ? "bg-[#F8F9FF] text-violet-600"
-                    : "text-slate-400 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  {item.icon}
-                  <span>{item.name}</span>
-                </div>
-                {activeSubTab === item.name && <motion.div layoutId="settingActive" className="w-1.5 h-1.5 bg-violet-600 rounded-full" />}
-              </button>
-            ))}
-          </div>
-          
-        </div>
-
+      <div className="max-w-4xl">
         {/* Area Konten */}
         <div className="flex-1">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeSubTab}
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -20, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {renderSubContent()}
-            </motion.div>
-          </AnimatePresence>
+          {renderSubContent()}
         </div>
       </div>
     </div>

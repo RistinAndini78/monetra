@@ -43,11 +43,11 @@ const userNavigation = [
     { name: "Budget", id: "Budgets", icon: PiggyBank },
   ]},
   { group: "ANALISIS", items: [
-    { name: "Analytics", id: "Analysis", icon: BarChart3 },
+    { name: "Analisis", id: "Analysis", icon: BarChart3 },
   ]},
   { group: "PENGATURAN", items: [
     { name: "Notifikasi", id: "Notifications", icon: Bell },
-    { name: "Profil & Settings", id: "Settings", icon: Settings },
+    { name: "Profil & Pengaturan", id: "Settings", icon: Settings },
   ]}
 ];
 

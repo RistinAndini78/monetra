@@ -271,7 +271,7 @@ const Bills: React.FC = () => {
                            {bill.status === 'paid' ? <CheckCircle2 size={20} /> : <CreditCard size={20} />}
                         </div>
                         <div>
-                           <h4 className={`text-sm font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
+                           <h4 className={`text-sm font-black ${bill.status === 'paid' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{bill.name}</h4>
                            <p className={`text-[9px] font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
                              {bill.status === 'paid' ? 'LUNAS' : `TEMPO: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
                            </p>

@@ -503,14 +503,14 @@ const Transactions: React.FC = () => {
           <button 
             onClick={handleExportPDF}
             className="p-3 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:text-slate-900" 
-            title="Export transactions as PDF"
+            title="Unduh riwayat sebagai PDF"
           >
             <FileText size={20} />
           </button>
           <button 
             onClick={handleExportTransactions}
             className="p-3 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:text-slate-900" 
-            title="Export transactions as CSV"
+            title="Unduh riwayat sebagai CSV"
           >
             <Download size={20} />
           </button>

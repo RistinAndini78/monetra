@@ -34,6 +34,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   const [activeSubTab, setActiveSubTab] = useState("Informasi Pribadi");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   
   // State untuk form fields agar terhubung ke DB
   const [formData, setFormData] = useState({
@@ -56,6 +57,10 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
           location: user.user_metadata.location || '',
           bio: user.user_metadata.bio || ''
         });
+        // Load foto profil dari metadata
+        if (user.user_metadata.avatar_url) {
+          setProfileImage(user.user_metadata.avatar_url);
+        }
       }
     };
     loadMetadata();
@@ -65,14 +70,41 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Tampilkan preview lokal dulu
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImage(reader.result as string);
+    reader.readAsDataURL(file);
+
+    // Upload ke Supabase Storage
+    try {
+      setIsUploadingPhoto(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `avatars/${user?.id}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('transaction-proofs')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('transaction-proofs')
+        .getPublicUrl(filePath);
+
+      // Simpan URL ke user_metadata
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+      setProfileImage(publicUrl);
+      onUserUpdate?.();
+    } catch (err: any) {
+      console.error('Upload gagal:', err);
+      alert('Gagal upload foto: ' + err.message);
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -112,7 +144,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                 </div>
                 
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Foto Profil</h3>
+                   <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Foto Profil</h3>
                   <p className="text-slate-400 font-medium leading-relaxed mb-6">Ukuran disarankan: 400x400px. JPG atau PNG.</p>
                   <input 
                     type="file" 
@@ -120,13 +152,23 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                     onChange={handleFileChange} 
                     className="hidden" 
                     accept="image/*"
+                    capture="environment"
                   />
                   <div 
                     onClick={handleUploadClick}
                     className="border-2 border-dashed border-slate-100 rounded-[24px] p-8 flex flex-col items-center justify-center group cursor-pointer hover:border-violet-600/40 hover:bg-violet-600/5 transition-all"
                   >
-                    <Upload className="text-slate-300 mb-2 group-hover:text-violet-600" size={24} />
-                    <span className="text-xs font-black text-slate-400 group-hover:text-violet-600 tracking-widest uppercase">Klik atau seret untuk mengunggah foto baru</span>
+                    {isUploadingPhoto ? (
+                      <>
+                        <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-2" />
+                        <span className="text-xs font-black text-violet-600 tracking-widest uppercase">Mengunggah foto...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="text-slate-300 mb-2 group-hover:text-violet-600" size={24} />
+                        <span className="text-xs font-black text-slate-400 group-hover:text-violet-600 tracking-widest uppercase">Ambil foto / unggah dari galeri</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

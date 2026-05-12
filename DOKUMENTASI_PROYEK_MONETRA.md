@@ -1,138 +1,168 @@
-# 📘 MANUAL TEKNIS KOMPREHENSIF: PROYEK MONETRA
-**Money Tracker & Analyzer - High Performance Edition**
+# 📘 THE MONETRA MASTER GUIDE: DOKUMENTASI TEKNIS END-TO-END (v3.0)
+**Panduan Utama Pengembangan & Pemeliharaan Aplikasi Monetra**
 
-Dokumentasi ini dibuat khusus untuk tim pengembang (developers) agar memahami setiap jengkal arsitektur, logika, dan infrastruktur yang membangun aplikasi Monetra.
-
----
-
-## 🏗️ 1. ARSITEKTUR SISTEM & FILOSOFI DESAIN
-Monetra dibangun dengan filosofi **"Fast, Reliable, & Interactive"**. Aplikasi ini menggunakan pola **Single Page Application (SPA)** dengan integrasi backend-as-a-service yang memungkinkan sinkronisasi data real-time tanpa memerlukan server backend sendiri.
-
-### Core Tech Stack:
-- **Frontend Engine:** React 18+ (Vite)
-- **Language:** TypeScript (Strict Mode)
-- **Styling:** Tailwind CSS v4 (Sistem Desain Modular)
-- **Database Backend:** Supabase (PostgreSQL)
-- **Real-time Engine:** Supabase Realtime (Postgres Changes)
-- **Storage:** Supabase Storage (Bucket Management)
-- **Notification:** Service Worker & Web Push API
-- **Reporting:** jsPDF dengan AutoTable plugin
+Dokumentasi ini dirancang agar developer manapun dapat memahami, memperbaiki, dan memperluas aplikasi Monetra tanpa perlu bertanya lagi. Dokumen ini membedah setiap modul hingga ke level fungsi dan state.
 
 ---
 
-## 📂 2. STRUKTUR DIREKTORI (DEEP DIVE)
+## 🏗️ 1. RINGKASAN ARSITEKTUR & TEKNOLOGI
 
-```text
-/src
-  ├── /assets          # Aset visual (Avatar default, logo)
-  ├── /components      # Komponen Reusable
-  │   └── Sidebar.tsx  # Navigasi utama dengan logika deteksi role (User/Admin)
-  ├── /lib             # Core Services & Konfigurasi
-  │   ├── supabase.ts      # Inisialisasi Client & Singleton Pattern
-  │   └── notifications.ts # Service Class untuk Push Notification & Alerts
-  ├── /pages           # Modul Halaman Utama
-  │   ├── Auth.tsx          # Autentikasi (Login/Sign Up/OAuth)
-  │   ├── Dashboard.tsx     # Hub pusat, memproses statistik kumulatif
-  │   ├── Transactions.tsx  # CRUD Transaksi, Upload Bukti, & Search Logic
-  │   ├── Budgets.tsx       # Logika kalkulasi spending vs limit
-  │   ├── Analysis.tsx      # Agregasi data untuk visualisasi Recharts
-  │   ├── Notifications.tsx # Manajemen log aktivitas pengguna
-  │   └── Settings.tsx      # Integrasi Supabase Auth (Update Profile/Password)
-  ├── App.tsx          # Central Routing, Theme State, & Global Listeners
-  └── sw.js            # Service Worker (Background Process)
-```
+Aplikasi Monetra menggunakan arsitektur **Serverless SPA (Single Page Application)**. Tidak ada backend server tradisional (Node.js/Python); semua logika bisnis yang memerlukan persistensi langsung berkomunikasi dengan **Supabase** sebagai Backend-as-a-Service (BaaS).
+
+### Tech Stack Breakdown:
+| Layer | Teknologi | Alasan Penggunaan |
+| :--- | :--- | :--- |
+| **Framework** | React 18 (Vite) | Rendering cepat dengan Fast Refresh untuk pengembangan. |
+| **Bahasa** | TypeScript | Menghindari error runtime dengan static typing pada object transaksi/user. |
+| **Database** | PostgreSQL (Supabase) | Mendukung query kompleks untuk laporan keuangan dan RLS. |
+| **Auth** | Supabase Auth | Manajemen session aman dengan JWT dan dukungan OAuth/Email. |
+| **Styling** | Tailwind CSS v4 | Utilitas CSS modern untuk desain premium tanpa menulis banyak file CSS. |
+| **Ikon** | Lucide React | Library ikon vektor yang ringan dan mudah dikustomisasi. |
+| **Grafik** | Recharts | Visualisasi data deklaratif yang responsif. |
+| **Export** | jsPDF | Pembuatan dokumen PDF langsung di sisi klien (Client-side). |
 
 ---
 
-## ⚙️ 3. LOGIKA INTERNAL & ALUR DATA (DATA FLOW)
+## 📂 2. STRUKTUR FOLDER & MODUL (DETAILED)
 
-### A. Alur Autentikasi (Supabase Auth)
-1. **Login:** Menggunakan `supabase.auth.signInWithPassword`. Jika berhasil, session disimpan di browser (Cookies/Local).
-2. **Persistence:** Di `App.tsx`, terdapat `onAuthStateChange` listener yang secara otomatis memperbarui state `user` setiap kali session berubah atau kadaluarsa.
-3. **Protected Routes:** Halaman hanya akan dirender jika state `user` tersedia, jika tidak, user akan diarahkan ke `/auth`.
+### `src/App.tsx` (The Controller)
+Ini adalah "Otak" dari aplikasi. 
+- **State Utama:** 
+  - `activeTab`: Menentukan halaman mana yang sedang tampil (Dashboard, Transactions, dll).
+  - `user`: Menyimpan objek profil user yang sedang login.
+  - `isSidebarOpen`: Mengontrol drawer navigasi pada tampilan mobile.
+- **Logika Kunci:** 
+  - `onAuthStateChange`: Listener yang memantau status login. Jika logout, state dibersihkan dan user dilempar ke halaman Auth.
+  - `useEffect (Tab Persistence)`: Menyimpan tab terakhir yang dibuka ke `localStorage` agar saat refresh halaman tidak kembali ke Dashboard.
 
-### B. Manajemen Transaksi (Transactions Page)
-- **Fetching:** Menggunakan query PostgreSQL via Supabase dengan sorting `date` descending.
-- **Background Upload:** Saat menambah pengeluaran dengan bukti:
-  1. Data transaksi dikirim ke tabel `transactions`.
-  2. Gambar diunggah ke bucket `transaction-proofs` dengan path `user_id/timestamp_namafile`.
-  3. URL publik gambar didapat dan diupdate kembali ke baris transaksi terkait.
-- **Optimasi UI:** Setelah insert, sistem memanggil `setDbTransactions` secara manual (Optimistic Update) SEBELUM memanggil `fetchTransactions` lagi untuk memastikan kecepatan UI.
+### `src/lib/supabase.ts`
+Berisi inisialisasi client Supabase. Client ini bersifat **Singleton**, artinya hanya ada satu instance koneksi yang digunakan oleh seluruh aplikasi untuk efisiensi memori.
 
-### C. Logika Smart Budgets
-- Sistem melakukan **Double Query**: 
-  1. Mengambil limit budget dari tabel `budgets`.
-  2. Melakukan agregasi (SUM) dari tabel `transactions` berdasarkan kategori dan periode yang sama.
-- Hasilnya dibandingkan di frontend untuk menentukan warna bar:
-  - `spent < amount * 0.8` => **Emerald (Hijau)**
-  - `spent < amount` => **Amber (Kuning)**
-  - `spent >= amount` => **Rose (Merah)**
+### `src/lib/notifications.ts` (Notification Engine)
+Mengatur komunikasi dengan Browser Notification API.
+- **Fungsi `sendNotification`**: Memeriksa izin browser. Jika diizinkan, ia akan memanggil Service Worker untuk menampilkan notifikasi.
+- **Fungsi `sendTransactionAlert`**: Logika khusus untuk memberikan feedback instan setelah transaksi (suara/getar/notifikasi).
 
 ---
 
-## 🔒 4. KEAMANAN & DATABASE (SECURITY DEEP DIVE)
+## 📑 3. ANALISIS MENDALAM PER HALAMAN
 
-### Row Level Security (RLS)
-Sangat krusial! Monetra menggunakan RLS agar data tidak bocor. Developer harus memastikan kebijakan (Policy) berikut aktif di Supabase SQL Editor:
+### A. Dashboard (`Dashboard.tsx`)
+Halaman ini adalah hub informasi yang melakukan agregasi data dari berbagai tabel.
+- **Logika Agregasi Data:**
+  - Fungsi `fetchDashboardData` mengambil semua transaksi user, lalu menggunakan filter JavaScript untuk memisahkan pemasukan dan pengeluaran bulan ini.
+  - `totalBalance` dihitung dengan rumus: `(Total Pemasukan - Total Pengeluaran)`.
+- **Grafik Kategori Teratas:**
+  - Data transaksi di-group berdasarkan kategori menggunakan `reduce()`.
+  - Hasilnya diurutkan (`sort`) dari yang terbesar untuk ditampilkan di grafik Recharts.
+- **Fitur Export PDF:**
+  - Menggunakan library `jsPDF`.
+  - Logika: Membuat dokumen baru -> Menambahkan Header -> Memanggil `autoTable` untuk merender data transaksi ke tabel PDF -> `doc.save()` untuk mendownload.
+
+### B. Transaksi (`Transactions.tsx`)
+Modul CRUD paling kompleks di aplikasi ini.
+- **State Management:**
+  - `transactions`: Array mentah dari database.
+  - `dbTransactions`: State untuk "Optimistic UI", di mana UI update dulu sebelum database selesai memproses (agar terasa instan).
+- **Logika Upload Gambar (Bukti Struk):**
+  - Hanya muncul jika `type === 'expense'`.
+  - Alur: Klik Upload -> Pilih File -> `FileReader` merender preview -> Saat "Simpan", file diunggah ke folder `transaction-proofs/[USER_ID]/` -> URL didapat -> URL disimpan ke kolom `proof_url`.
+- **Fitur Pencarian:** 
+  - Menggunakan filter `.filter()` pada array transaksi berdasarkan `judul` atau `kategori`.
+
+### C. Anggaran (`Budgets.tsx`)
+Modul perencanaan keuangan.
+- **Logika Perhitungan:**
+  - Mengambil data dari tabel `budgets`.
+  - Melakukan cross-reference ke tabel `transactions` untuk menghitung sisa saldo di kategori tersebut.
+- **Sistem Warna Indikator:**
+  - Menggunakan rumus persentase: `(terpakai / budget) * 100`.
+  - Logika CSS dinamis: `className={percent > 100 ? 'bg-rose-500' : percent > 80 ? 'bg-amber-500' : 'bg-emerald-500'}`.
+
+### D. Pengaturan (`Settings.tsx`)
+Modul manajemen identitas user.
+- **Update Profil:** Menggunakan `supabase.auth.updateUser`. Fungsi ini memperbarui `user_metadata` yang berisi nama lengkap.
+- **Security Toggles:** Meskipun tampilannya toggle, fungsinya saat ini menyimpan preferensi user ke `localStorage` atau `user_metadata`.
+- **Ganti Password:** Memicu email resmi dari Supabase Auth untuk reset password secara aman.
+
+---
+
+## 🗄️ 4. STRUKTUR DATABASE (FULL SQL SCHEMA)
+
+Jika developer ingin memindahkan database atau melakukan migrasi, gunakan skema SQL berikut:
 
 ```sql
--- Contoh Policy untuk tabel Transactions
-CREATE POLICY "Users can only see their own transactions" 
-ON public.transactions FOR SELECT 
-USING (auth.uid() = user_id);
+-- 1. Tabel Transaksi
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  judul TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  category TEXT NOT NULL,
+  type TEXT CHECK (type IN ('income', 'expense')),
+  date DATE DEFAULT CURRENT_DATE,
+  catatan TEXT,
+  proof_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-CREATE POLICY "Users can insert their own transactions" 
-ON public.transactions FOR INSERT 
-WITH CHECK (auth.uid() = user_id);
+-- 2. Tabel Budget
+CREATE TABLE budgets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  category TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  period TEXT DEFAULT 'Bulanan',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Kebijakan Keamanan (RLS)
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+
+-- Policy: User hanya bisa melihat datanya sendiri
+CREATE POLICY "Individu" ON transactions
+FOR ALL USING (auth.uid() = user_id);
 ```
 
-### Tabel Database (Detail Kolom):
-1. **`transactions`**:
-   - `id` (uuid, PK)
-   - `user_id` (uuid, FK to auth.users)
-   - `amount` (numeric)
-   - `category` (text) - Contoh: 'Makanan', 'Transport'
-   - `type` (text) - 'income' atau 'expense'
-   - `judul` (text)
-   - `catatan` (text, nullable)
-   - `proof_url` (text, nullable)
-   - `date` (date)
+---
 
-2. **`budgets`**:
-   - `limit` (numeric), `spent` (numeric), `period` (text: 'Bulanan', etc)
+## 📡 5. SERVICE WORKER & PWA (`sw.js`)
+
+Aplikasi ini memiliki kemampuan berjalan di background melalui `sw.js`.
+- **Event `install`**: Melakukan caching aset statis agar aplikasi bisa dibuka lebih cepat.
+- **Event `push`**: Mendengarkan sinyal dari Supabase/Cloud Messaging. Saat sinyal masuk, ia menjalankan `self.registration.showNotification()`.
+- **Event `notificationclick`**: Mendeteksi saat user mengklik notifikasi, lalu membuka kembali tab browser yang berisi aplikasi Monetra.
 
 ---
 
-## 🔔 5. SISTEM NOTIFIKASI & SERVICE WORKER
-Monetra menggunakan teknologi **Background Sync**:
-1. **`PushNotificationService`**: Class statis di `src/lib/notifications.ts` yang menangani permintaan izin (`Notification.requestPermission`) dan pengiriman notifikasi.
-2. **`sw.js` (Service Worker)**: 
-   - Mendengarkan event `push` dari server.
-   - Menggunakan `self.registration.showNotification` untuk memunculkan pop-up sistem meskipun browser tertutup.
-   - Menangani `notificationclick` untuk mengarahkan user kembali ke aplikasi.
+## 🛠️ 6. PANDUAN ERROR HANDLING & TROUBLESHOOTING
+
+1. **Layar Putih (White Screen):**
+   - **Penyebab:** Biasanya karena ada ikon yang belum di-import dari `lucide-react`.
+   - **Solusi:** Cek konsol browser (F12), cari error "ReferenceError: [IconName] is not defined".
+2. **Gambar Tidak Muncul:**
+   - **Penyebab:** Policy di Supabase Storage bucket `transaction-proofs` belum diset ke 'Public'.
+   - **Solusi:** Buka dashboard Supabase -> Storage -> Buckets -> Edit Bucket -> Jadikan Public.
+3. **Notifikasi Tidak Muncul:**
+   - **Penyebab:** Browser memblokir notifikasi atau Service Worker gagal registrasi.
+   - **Solusi:** Klik ikon gembok di URL bar browser -> Site Settings -> Reset Permissions -> Refresh.
 
 ---
 
-## 📈 6. ANALISIS & REPORTING (LOGIKA EXPORT)
-- **Recharts Integration:** Data transaksi difilter berdasarkan 30 hari terakhir, dikelompokkan per tanggal, dan dijumlahkan untuk membentuk grafik garis/area.
-- **jsPDF Logic:**
-  - Laporan dibuat di sisi klien (Client-side) untuk menghemat bandwidth.
-  - Menggunakan `jspdf-autotable` untuk merender riwayat transaksi ke dalam format grid yang rapi.
-  - Header laporan berisi nama user dan timestamp pembuatan.
+## 🚀 7. ALUR KERJA (WORKFLOW) DEVELOPER
+
+1. **Menambah Fitur Baru:**
+   - Buat komponen di `/components`.
+   - Import komponen ke halaman yang sesuai di `/pages`.
+   - Jika butuh data baru, buat tabel di Supabase dan aktifkan RLS.
+2. **Update Desain:**
+   - Edit `index.css` pada bagian `@theme`.
+   - Gunakan utility Tailwind langsung di elemen JSX.
+3. **Deployment:**
+   - Cukup `git push` ke GitHub, Vercel akan otomatis melakukan build (`npm run build`) dan mendistribusikan aplikasi secara global.
 
 ---
 
-## 🚀 7. PANDUAN PENGEMBANGAN LANJUTAN
-Bagi developer yang ingin menambahkan fitur:
-1. **Tambah Kategori:** Perbarui array `categories` di `Transactions.tsx` dan `Budgets.tsx`. Pastikan ikon Lucide yang sesuai sudah di-import.
-2. **Ganti Tema:** Warna utama dikendalikan via CSS Variables di `index.css` (Tailwind v4 `@theme`).
-3. **Tambah Halaman Baru:** 
-   - Buat file baru di `/src/pages`.
-   - Tambahkan ID halaman di `Sidebar.tsx` (bagian `userNavigation`).
-   - Tambahkan kondisi render di `App.tsx`.
-
----
-**Peringatan Keamanan:** Jangan pernah menyimpan `SUPABASE_SERVICE_ROLE_KEY` di file frontend. Selalu gunakan `ANON_KEY` untuk akses publik yang aman dengan RLS.
-
-**Dokumentasi Versi:** 2.0 (Edisi Pengembang Profesional)
-**Terakhir Diperbarui:** Mei 2026
+**Dibuat Oleh:** AI Coding Assistant (Antigravity) & Tim Monetra  
+**Versi Dokumen:** 3.0 (Ultimate Developer Edition)  
+**Terakhir Diupdate:** Mei 2026  

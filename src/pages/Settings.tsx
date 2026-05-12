@@ -34,10 +34,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
-    name: userName,
-    phone: '',
-    location: '',
-    bio: ''
+    name: userName
   });
 
   useEffect(() => {
@@ -45,10 +42,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.user_metadata) {
         setFormData({
-          name: user.user_metadata.name || userName,
-          phone: user.user_metadata.phone || '',
-          location: user.user_metadata.location || '',
-          bio: user.user_metadata.bio || ''
+          name: user.user_metadata.name || userName
         });
         if (user.user_metadata.avatar_url) {
           setProfileImage(user.user_metadata.avatar_url);
@@ -270,44 +264,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                 </div>
               </div>
             </div>
-            <div className="space-y-3">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Nomor Telepon</label>
-              <div className="relative group">
-                <input 
-                  type="text" 
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
-                  <Phone size={14} />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Lokasi</label>
-              <div className="relative group">
-                <input 
-                  type="text" 
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold"
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-violet-600 transition-colors">
-                  <MapPin size={14} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 space-y-3">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Bio</label>
-            <textarea 
-              className="w-full px-6 py-4 bg-[#F8F9FB] border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-600/20 transition-all font-semibold h-32 resize-none"
-              placeholder="Ceritakan tentang diri Anda..."
-              value={formData.bio}
-              onChange={(e) => setFormData({...formData, bio: e.target.value})}
-            />
           </div>
 
           <div className="flex justify-end gap-4 pt-10">
@@ -318,10 +274,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                   setIsSaving(true);
                   const { error } = await supabase.auth.updateUser({
                     data: { 
-                      name: formData.name,
-                      phone: formData.phone,
-                      location: formData.location,
-                      bio: formData.bio
+                      name: formData.name
                     }
                   });
                   if (error) throw error;

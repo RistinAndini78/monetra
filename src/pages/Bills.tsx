@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
 import { format, parseISO } from "date-fns";
+import EmailService from "../lib/emailService";
 
 interface Bill {
   id: string;
@@ -146,7 +147,18 @@ const Bills: React.FC = () => {
 
       if (billError) throw billError;
 
-      alert("Tagihan berhasil dibayar!");
+      // 5. Kirim Notifikasi Email
+      try {
+        await EmailService.sendPaymentConfirmation(userData.user?.email || '', {
+          billName: bill.name,
+          amount: bill.amount,
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+        });
+      } catch (emailErr) {
+        console.error("Gagal mengirim email konfirmasi", emailErr);
+      }
+
+      alert("Tagihan berhasil dibayar! Email konfirmasi telah dikirim.");
       fetchBills();
     } catch (err: any) {
       alert("Gagal membayar tagihan: " + err.message);

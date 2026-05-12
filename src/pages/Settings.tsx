@@ -159,6 +159,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                {[
                  { title: "Autentikasi Dua Faktor", desc: "Tambahkan lapisan keamanan ekstra ke akun Anda.", status: "Aktif", type: "toggle" },
                  { title: "Mode Privasi", desc: "Sembunyikan saldo dan detail transaksi di dasbor Anda.", status: "Nonaktif", type: "toggle" },
+                 { title: "Notifikasi Email", desc: "Kirim pengingat tagihan dan konfirmasi pembayaran ke email Anda.", status: "Aktif", type: "toggle" },
                  { title: "Manajemen Sesi", desc: "Pantau di mana Anda telah masuk.", status: "Aktif", type: "button" },
                ].map(item => (
                  <div key={item.title} className="flex items-center justify-between p-6 bg-[#F8F9FB] rounded-3xl group">

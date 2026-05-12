@@ -149,6 +149,7 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
                   <button className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Batalkan Perubahan</button>
                   <button className="bg-violet-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all">Simpan Perubahan</button>
                </div>
+            </div>
           </div>
         );
       case "Keamanan & Privasi":

@@ -260,21 +260,21 @@ const Bills: React.FC = () => {
            ) : (
              <div className="space-y-6">
                 {bills.map((bill) => (
-                  <div key={bill.id} className={`flex items-center justify-between p-7 rounded-[32px] border transition-all group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
+                  <div key={bill.id} className={`flex items-center justify-between p-6 rounded-[32px] border transition-all group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
                      <div className="flex items-center gap-6">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
                            {bill.status === 'paid' ? <CheckCircle2 size={24} /> : <CreditCard size={24} />}
                         </div>
                         <div>
-                           <h4 className={`text-lg font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
-                           <p className={`text-xs font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
+                           <h4 className={`text-base font-black ${bill.status === 'paid' ? 'text-slate-900' : 'text-slate-900'}`}>{bill.name}</h4>
+                           <p className={`text-[10px] font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
                              {bill.status === 'paid' ? 'LUNAS' : `TEMPO: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
                            </p>
                         </div>
                      </div>
                      <div className="flex items-center gap-12">
                         <div className="text-right">
-                           <p className="text-xl font-black text-slate-900">{formatCurrency(bill.amount)}</p>
+                           <p className="text-lg font-black text-slate-900">{formatCurrency(bill.amount)}</p>
                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
                         </div>
                         

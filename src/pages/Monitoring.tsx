@@ -44,13 +44,23 @@ const logs = [
 const Monitoring: React.FC = () => {
   const [isLive, setIsLive] = useState(true);
   const [pulse, setPulse] = useState(false);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      const { count } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true });
+      setTotalUsers(count || 0);
+    };
+
+    fetchStats();
     const interval = setInterval(() => {
       setPulse(p => !p);
-    }, 2000);
+      if (isLive) fetchStats();
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isLive]);
 
   return (
     <div className="p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
@@ -61,7 +71,7 @@ const Monitoring: React.FC = () => {
             <span className="text-[10px] font-black text-violet-600 uppercase tracking-[0.2em]">Pemantauan Langsung</span>
           </div>
           <h2 className="text-4xl font-black text-slate-900 tracking-tight">Kesehatan Sistem</h2>
-          <p className="text-slate-400 font-medium mt-1">Aliran data WebSocket waktu nyata dari klaster infrastruktur inti.</p>
+          <p className="text-slate-400 font-medium mt-1">Aliran data riil dari database <span className="text-violet-600 font-bold">Supabase</span>.</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -78,6 +88,7 @@ const Monitoring: React.FC = () => {
              {["Metrik", "Log", "Keamanan"].map((tab) => (
                <button 
                  key={tab}
+                 onClick={() => alert(`Fitur ${tab} Sedang Dimuat...`)}
                  className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${tab === 'Metrik' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-slate-400 hover:text-slate-900'}`}
                >
                  {tab}
@@ -91,7 +102,7 @@ const Monitoring: React.FC = () => {
         {/* Statistik Inti */}
         <div className="lg:col-span-4 bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-black text-slate-900">Pengguna Aktif Langsung</h3>
+            <h3 className="text-lg font-black text-slate-900">Total Pengguna Terdaftar</h3>
             <div className="p-3 bg-violet-600/5 text-violet-600 rounded-2xl">
                <Users size={20} />
             </div>
@@ -99,7 +110,7 @@ const Monitoring: React.FC = () => {
           
           <div>
             <div className="flex items-baseline gap-4 mb-4">
-               <p className="text-5xl font-black text-violet-600 tracking-tighter">12.842</p>
+               <p className="text-5xl font-black text-violet-600 tracking-tighter">{totalUsers.toLocaleString()}</p>
                <div className="flex items-center text-emerald-500 font-bold text-xs">
                   <ArrowUpRight size={14} />
                   <span>14%</span>

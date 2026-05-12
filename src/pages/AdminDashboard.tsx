@@ -12,33 +12,51 @@ import { supabase } from "../lib/supabase";
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalTx, setTotalTx] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAdminData();
   }, []);
 
+  useEffect(() => {
+    const filtered = users.filter(user => 
+      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  }, [searchQuery, users]);
+
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      // 1. Ambil Total Pengguna dari user_profiles
-      const { count, error: countError } = await supabase
+      // 1. Ambil Total Pengguna
+      const { count: userCount, error: countError } = await supabase
         .from('user_profiles')
         .select('*', { count: 'exact', head: true });
       
       if (countError) throw countError;
-      setTotalUsers(count || 0);
+      setTotalUsers(userCount || 0);
 
-      // 2. Ambil Daftar User Terbaru
+      // 2. Ambil Total Transaksi Sistem
+      const { count: txCount, error: txError } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true });
+      
+      if (txError) throw txError;
+      setTotalTx(txCount || 0);
+
+      // 3. Ambil Daftar User
       const { data, error: usersError } = await supabase
         .from('user_profiles')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
       setUsers(data || []);
+      setFilteredUsers(data || []);
     } catch (error) {
       console.error("Error fetching admin data:", error);
     } finally {
@@ -46,11 +64,30 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus user ini secara permanen?")) {
+      try {
+        const { error } = await supabase
+          .from('user_profiles')
+          .delete()
+          .eq('id', userId);
+        
+        if (error) throw error;
+        
+        // Refresh data
+        fetchAdminData();
+        alert("User berhasil dihapus.");
+      } catch (err: any) {
+        alert("Gagal menghapus user: " + err.message);
+      }
+    }
+  };
+
   const stats = [
     { label: "Total Pengguna", value: totalUsers.toLocaleString(), trend: "Database Riil", icon: Users, color: "bg-violet-50 text-violet-600" },
-    { label: "Status Database", value: "Terhubung", trend: "Supabase", icon: Activity, color: "bg-emerald-50 text-emerald-600" },
+    { label: "Total Transaksi", value: totalTx.toLocaleString(), trend: "Seluruh Sistem", icon: Activity, color: "bg-emerald-50 text-emerald-600" },
     { label: "Keamanan", value: "Aktif", trend: "SSL/TLS", icon: ShieldCheck, color: "bg-blue-50 text-blue-600" },
-    { label: "Region Server", value: "SG", trend: "Online", icon: Server, color: "bg-cyan-50 text-cyan-600" },
+    { label: "Sinkronisasi", value: "Real-time", trend: "Online", icon: Server, color: "bg-cyan-50 text-cyan-600" },
   ];
 
   return (
@@ -58,7 +95,7 @@ const AdminDashboard: React.FC = () => {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Panel Kontrol Admin</h2>
-          <p className="text-slate-400 font-medium tracking-tight">Data di bawah ditarik langsung dari tabel <span className="text-violet-600 font-bold">user_profiles</span>.</p>
+          <p className="text-slate-400 font-medium tracking-tight">Manajemen terpusat untuk seluruh ekosistem <span className="text-violet-600 font-bold">Monetra</span>.</p>
         </div>
         <button 
           onClick={fetchAdminData}
@@ -103,7 +140,9 @@ const AdminDashboard: React.FC = () => {
                  <input 
                    type="text" 
                    placeholder="Cari user..." 
-                   className="pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold outline-none w-48"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold outline-none w-48 focus:ring-2 ring-violet-100 transition-all"
                  />
               </div>
            </div>
@@ -114,13 +153,13 @@ const AdminDashboard: React.FC = () => {
                   <div className="w-10 h-10 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin mx-auto mb-4" />
                   <p className="text-slate-400 font-bold text-sm">Menghubungkan ke Supabase...</p>
                 </div>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[32px]">
                    <Users className="text-slate-200 mx-auto mb-4" size={48} />
-                   <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Belum ada user yang terdaftar</p>
+                   <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">User tidak ditemukan</p>
                 </div>
               ) : (
-                users.map((user, i) => (
+                filteredUsers.map((user, i) => (
                   <div key={i} className="flex items-center justify-between p-5 rounded-2xl hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-violet-600/10 rounded-xl flex items-center justify-center font-black text-violet-600 text-sm">
@@ -139,9 +178,11 @@ const AdminDashboard: React.FC = () => {
                           {user.currency || 'IDR'}
                         </span>
                       </div>
-                      <button className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
-                        <MoreHorizontal size={20} />
-                      </button>
+                      <div className="relative group/menu">
+                        <button className="p-2 text-slate-300 hover:text-rose-600 transition-colors" onClick={() => handleDeleteUser(user.id)}>
+                          <Activity size={20} className="rotate-45" /> {/* Use Activity as a pseudo-delete/remove icon or MoreHorizontal */}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))

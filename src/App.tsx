@@ -18,7 +18,9 @@ import { supabase } from "./lib/supabase";
 
 const App = () => {
   const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("monetra_active_tab") || "Dashboard";
+  });
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<"user" | "admin">("admin");
   
@@ -69,13 +71,23 @@ const App = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Simpan tab ke localStorage setiap kali berubah
+  useEffect(() => {
+    localStorage.setItem("monetra_active_tab", activeTab);
+  }, [activeTab]);
+
   const handleLogin = (userData: any) => {
     setUser(userData);
     setUserRole(userData.role);
-    if (userData.role === "admin") {
-      setActiveTab("Monitoring");
-    } else {
-      setActiveTab("Dashboard");
+    
+    // Hanya arahkan ke default jika belum ada tab yang tersimpan
+    const savedTab = localStorage.getItem("monetra_active_tab");
+    if (!savedTab) {
+      if (userData.role === "admin") {
+        setActiveTab("Monitoring");
+      } else {
+        setActiveTab("Dashboard");
+      }
     }
   };
 

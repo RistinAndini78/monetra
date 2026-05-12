@@ -54,6 +54,9 @@ Sistem ini memastikan bahwa jika pengguna tidak sengaja menekan tombol dua kali,
 #### 5. Sistem Notifikasi & Lonceng Real-Time
 Header aplikasi dilengkapi dengan **Lonceng Notifikasi** yang aktif. Berbeda dengan lonceng biasa, lonceng ini memiliki nyawa; ia akan bergetar (*bounce*) secara otomatis setiap kali ada pesan masuk. Ketika diklik, sebuah jendela melayang (*dropdown*) akan muncul dengan animasi yang sangat halus. Di sana, pengguna dapat membaca pesan-pesan konfirmasi, seperti "Gaji Anda telah berhasil dicatat" atau "Tagihan Listrik telah dilunasi". Fitur ini memastikan pengguna selalu terhubung dengan setiap perubahan yang terjadi pada akun mereka.
 
+#### 6. Layanan Notifikasi Email (Premium Alert) - *Baru!*
+Monetra kini selangkah lebih maju dengan integrasi **Email Gateway (Resend)**. Fitur ini tidak hanya memberikan notifikasi di dalam aplikasi, tetapi juga mengirimkan bukti pembayaran resmi dan pengingat tagihan langsung ke alamat email pengguna. Pengguna dapat mengontrol fitur ini melalui halaman Pengaturan, memberikan fleksibilitas penuh antara kenyamanan dan privasi. Setiap email didesain dengan format HTML profesional yang mencakup detail nominal, kategori, dan tanggal transaksi.
+
 ---
 
 ### 🛡️ B. HALAMAN ADMINISTRATOR (ADMIN CONSOLE)

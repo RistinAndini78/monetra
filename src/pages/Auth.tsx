@@ -144,6 +144,18 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
         if (registerError) throw registerError;
 
+        // Sync to user_profiles table immediately
+        if (data.user) {
+          await supabase.from('user_profiles').insert([
+            {
+              id: data.user.id,
+              full_name: name,
+              currency: 'IDR',
+              created_at: new Date().toISOString()
+            }
+          ]);
+        }
+
         setIsLogin(true);
         setError("Registrasi berhasil! Silakan periksa email Anda untuk verifikasi lalu masuk.");
       }

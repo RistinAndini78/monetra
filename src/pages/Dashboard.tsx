@@ -21,6 +21,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, 
   BarChart, Bar, XAxis, Tooltip, 
 } from "recharts";
+import EmailService from "../lib/emailService";
 
 interface DashboardProps {
   onViewAll?: () => void;
@@ -48,7 +49,44 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
       const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
       if (error) throw error;
       setTransactions(data || []);
+      
+      // Smart Check untuk Tagihan Jatuh Tempo Hari Ini
+      checkDueBills();
     } catch (err) { console.error(err); } finally { setLoading(false); }
+  };
+
+  const checkDueBills = async () => {
+    try {
+       const today = new Date().toISOString().split('T')[0];
+       const { data: dueBills } = await supabase
+         .from('bills')
+         .select('*')
+         .eq('due_date', today)
+         .eq('status', 'upcoming');
+
+       if (dueBills && dueBills.length > 0) {
+          const { data: userData } = await supabase.auth.getUser();
+          
+          for (const bill of dueBills) {
+             // 1. Kirim Notifikasi Web (Lonceng)
+             await supabase.from('notifications').insert([{
+                user_id: userData.user?.id,
+                title: '⚠️ Tagihan Jatuh Tempo!',
+                message: `Tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)} jatuh tempo HARI INI. Segera bayar!`,
+                type: 'warning'
+             }]);
+
+             // 2. Kirim Notifikasi Email
+             try {
+                await EmailService.sendBillReminder(userData.user?.email || '', {
+                   billName: bill.name,
+                   dueDate: 'HARI INI',
+                   amount: bill.amount
+                });
+             } catch (e) { console.error("Email reminder failed", e); }
+          }
+       }
+    } catch (err) { console.error("Smart check failed", err); }
   };
 
   // 1. Kalkulasi Statistik Utama

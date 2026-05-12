@@ -23,7 +23,7 @@ class EmailService {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'Monetra <notifications@monetra.id>',
+          from: 'Monetra <onboarding@resend.dev>',
           to: [to],
           subject: `✅ Pembayaran Berhasil: ${data.billName}`,
           html: `
@@ -82,7 +82,7 @@ class EmailService {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'Monetra <reminders@monetra.id>',
+          from: 'Monetra <onboarding@resend.dev>',
           to: [to],
           subject: `⚠️ Pengingat Tagihan: ${data.billName}`,
           html: `

@@ -51,6 +51,7 @@ const Bills: React.FC = () => {
 
   useEffect(() => {
     fetchBills();
+    checkDueBills();
   }, []);
 
   const fetchBills = async () => {
@@ -68,6 +69,47 @@ const Bills: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkDueBills = async () => {
+    try {
+      const today = new Date().toLocaleDateString('en-CA'); // format YYYY-MM-DD
+      const { data: dueBills } = await supabase
+        .from('bills')
+        .select('*')
+        .eq('due_date', today)
+        .eq('status', 'upcoming');
+
+      if (dueBills && dueBills.length > 0) {
+        const { data: userData } = await supabase.auth.getUser();
+        for (const bill of dueBills) {
+          // Cek dulu apakah notifikasi hari ini sudah pernah dikirim
+          const { data: existingNotif } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('user_id', userData.user?.id)
+            .ilike('message', `%${bill.name}%jatuh tempo HARI INI%`)
+            .gte('created_at', new Date().toISOString().split('T')[0]);
+
+          if (existingNotif && existingNotif.length > 0) continue; // sudah pernah dikirim hari ini
+
+          // Kirim notifikasi web
+          await supabase.from('notifications').insert([{
+            user_id: userData.user?.id,
+            title: '⚠️ Tagihan Jatuh Tempo!',
+            message: `Tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)} jatuh tempo HARI INI.`,
+            type: 'warning'
+          }]);
+
+          // Kirim email
+          await EmailService.sendBillReminder(userData.user?.email || '', {
+            billName: bill.name,
+            dueDate: 'HARI INI',
+            amount: bill.amount
+          }).catch(e => console.error("Email gagal:", e));
+        }
+      }
+    } catch (err) { console.error("checkDueBills error:", err); }
   };
 
   const handleAddBill = async (e: React.FormEvent) => {

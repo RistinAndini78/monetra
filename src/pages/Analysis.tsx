@@ -26,7 +26,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { motion } from "motion/react";
+import { motion } from "motion";
 import { supabase } from "../lib/supabase";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { id } from "date-fns/locale";
@@ -40,6 +40,7 @@ const Analysis: React.FC = () => {
     totalExpenses: 0,
     savingsRate: 0
   });
+  const [insights, setInsights] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAnalysisData();
@@ -102,11 +103,29 @@ const Analysis: React.FC = () => {
 
       setCategoryData(processedCategories.length > 0 ? processedCategories : [{ name: "Belum Ada", value: 1, color: "#F1F5F9" }]);
       
+      const savingsRate = totalInc > 0 ? Math.round(((totalInc - totalExp) / totalInc) * 100) : 0;
       setStats({
         totalIncome: totalInc,
         totalExpenses: totalExp,
-        savingsRate: totalInc > 0 ? Math.round(((totalInc - totalExp) / totalInc) * 100) : 0
+        savingsRate
       });
+
+      // 3. Generate Smart Insights
+      const newInsights = [];
+      if (totalExp > totalInc && totalInc > 0) {
+        newInsights.push("⚠️ Bahaya! Pengeluaran Anda melebihi pemasukan bulan ini.");
+      } else if (savingsRate > 30) {
+        newInsights.push("🎉 Luar biasa! Tingkat tabungan Anda sangat sehat bulan ini.");
+      }
+      
+      if (categoryMap['Makanan'] > totalExp * 0.4) {
+        newInsights.push("🍔 Waduh, jajan makanan memakan hampir setengah budget Anda! Coba kurangi ya.");
+      }
+      
+      if (newInsights.length === 0) {
+        newInsights.push("✨ Belum ada tren mencolok. Terus catat transaksi Anda!");
+      }
+      setInsights(newInsights);
 
     } catch (err) {
       console.error(err);
@@ -141,6 +160,31 @@ const Analysis: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* NEW: Smart Insights AI Section */}
+      <div className="bg-gradient-to-br from-violet-600 to-indigo-700 p-10 rounded-[40px] text-white relative overflow-hidden shadow-2xl shadow-violet-600/20">
+         <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                  <Sparkles size={20} className="text-yellow-300" />
+               </div>
+               <h3 className="text-xl font-black">Insight Cerdas (AI)</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               {insights.map((msg, i) => (
+                 <motion.div 
+                   key={i}
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="p-5 bg-white/10 backdrop-blur-md border border-white/10 rounded-3xl font-bold text-sm leading-relaxed"
+                 >
+                   {msg}
+                 </motion.div>
+               ))}
+            </div>
+         </div>
+         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
+      </div>
 
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">

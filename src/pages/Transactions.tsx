@@ -59,43 +59,7 @@ const Transactions: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Setup drag and drop
-    if (dragRef.current) {
-      const handleDragOver = (e: DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(true);
-      };
-
-      const handleDragLeave = (e: DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-      };
-
-      const handleDrop = (e: DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-        
-        if (e.dataTransfer?.files) {
-          const files = Array.from(e.dataTransfer.files);
-          files.forEach(file => handleFileImport(file));
-        }
-      };
-
-      dragRef.current.addEventListener('dragover', handleDragOver);
-      dragRef.current.addEventListener('dragleave', handleDragLeave);
-      dragRef.current.addEventListener('drop', handleDrop);
-
-      return () => {
-        if (dragRef.current) {
-          dragRef.current.removeEventListener('dragover', handleDragOver);
-          dragRef.current.removeEventListener('dragleave', handleDragLeave);
-          dragRef.current.removeEventListener('drop', handleDrop);
-        }
-      };
-    }
+    fetchTransactions();
   }, []);
 
   const fetchTransactions = async () => {
@@ -331,36 +295,52 @@ const Transactions: React.FC = () => {
                     <input type="date" required value={newTx.date} onChange={(e) => setNewTx({...newTx, date: e.target.value})} className="input-field w-full text-sm font-bold" />
                   </div>
                   
-                  {/* Image Upload Field */}
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bukti Pembayaran (Opsional)</label>
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-violet-600/30 hover:bg-violet-50 transition-all overflow-hidden min-h-[100px]"
-                    >
-                      {imagePreview ? (
-                        <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-xl" />
-                      ) : (
-                        <>
-                          <Upload size={20} className="text-slate-300" />
-                          <span className="text-[10px] font-bold text-slate-400">Klik untuk upload foto bukti</span>
-                        </>
-                      )}
+                  {/* Image Upload Field - Only for Expense */}
+                  {newTx.type === 'expense' && (
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bukti Struk Pembayaran (Wajib/Opsional)</label>
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-[32px] p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all overflow-hidden min-h-[180px] ${
+                          imagePreview 
+                            ? 'border-emerald-500 bg-emerald-50/30' 
+                            : 'border-slate-200 bg-slate-50 hover:border-violet-600 hover:bg-violet-50/50'
+                        }`}
+                      >
+                        {imagePreview ? (
+                          <div className="relative w-full">
+                            <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded-[24px] shadow-lg" />
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-[24px]">
+                              <p className="text-white text-xs font-bold">Klik untuk ganti foto</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-400 group-hover:text-violet-600 transition-colors">
+                              <Upload size={32} />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-black text-slate-900">Klik atau seret foto ke sini</p>
+                              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Format: PNG, JPG (Max 5MB)</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setSelectedImage(file);
+                            setImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
                     </div>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedImage(file);
-                          setImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                    />
-                  </div>
+                  )}
                 </div>
                 <button type="submit" disabled={isSubmitting} className="btn-primary w-full">{isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}</button>
               </form>
@@ -386,29 +366,7 @@ const Transactions: React.FC = () => {
         </div>
       </header>
 
-      {/* Drag & Drop Zone */}
-      <div
-        ref={dragRef}
-        className={`border-2 border-dashed rounded-3xl p-8 transition-all ${
-          isDragOver
-            ? 'border-violet-500 bg-violet-50'
-            : 'border-slate-200 bg-slate-50/50 hover:border-violet-300'
-        }`}
-      >
-        <div className="flex flex-col items-center justify-center gap-4 py-8">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
-            isDragOver ? 'bg-violet-200 text-violet-600' : 'bg-white text-slate-400'
-          }`}>
-            <Upload size={32} />
-          </div>
-          <div className="text-center">
-            <p className="font-black text-slate-900 text-lg">
-              {isDragOver ? 'Lepas file untuk diimport' : 'Drag & Drop file di sini'}
-            </p>
-            <p className="text-slate-500 text-sm mt-1">Gambar, CSV atau JSON format • Max 5MB</p>
-          </div>
-        </div>
-      </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">

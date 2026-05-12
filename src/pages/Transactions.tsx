@@ -439,9 +439,19 @@ const Transactions: React.FC = () => {
 
       <div className="bg-white border border-slate-100 rounded-[40px] shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 className="text-violet-500 animate-spin" size={40} />
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Menyelaraskan data...</p>
+          <div className="p-8 space-y-4">
+            {[1,2,3,4,5].map(i => (
+              <div key={i} className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl skeleton" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 skeleton" />
+                    <div className="h-3 w-20 skeleton" />
+                  </div>
+                </div>
+                <div className="h-6 w-24 rounded-lg skeleton" />
+              </div>
+            ))}
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">

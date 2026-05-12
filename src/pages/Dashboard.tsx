@@ -222,12 +222,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
 
   if (loading && transactions.length === 0) {
     return (
-       <div className="h-screen w-full flex items-center justify-center bg-[#F8F9FC]">
-          <div className="flex flex-col items-center gap-4">
-             <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
-             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sinkronisasi Data...</p>
+      <div className="p-10 space-y-10 animate-fade-in">
+        <div className="flex justify-between items-center">
+          <div className="space-y-3">
+            <div className="h-10 w-64 skeleton" />
+            <div className="h-4 w-48 skeleton" />
           </div>
-       </div>
+          <div className="h-24 w-64 rounded-[32px] skeleton hidden md:block" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1,2,3].map(i => <div key={i} className="h-32 rounded-[32px] skeleton" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="h-96 rounded-[40px] skeleton" />
+          <div className="h-96 rounded-[40px] skeleton" />
+        </div>
+      </div>
     );
   }
 

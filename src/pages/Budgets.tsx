@@ -118,7 +118,7 @@ const Budgets: React.FC = () => {
     } catch (err) {
       console.error("Error fetching budgets:", err);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 500); // Slight delay for smooth skeleton
     }
   };
 
@@ -203,8 +203,16 @@ const Budgets: React.FC = () => {
                       <span className={`text-[10px] font-black uppercase tracking-widest ${overallProgress > 90 ? 'text-rose-500' : 'text-slate-900'}`}>{Math.round(overallProgress)}% Terpakai</span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sisa {formatCurrency(totalBudget - totalSpent)}</span>
                    </div>
-                   <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(overallProgress, 100)}%` }} className={`h-full rounded-full ${overallProgress > 90 ? 'bg-rose-500' : 'bg-violet-600'}`} />
+                   <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                      <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${Math.min(overallProgress, 100)}%` }} 
+                        className={`h-full rounded-full transition-colors duration-500 ${
+                          overallProgress >= 100 ? 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]' : 
+                          overallProgress > 80 ? 'bg-amber-500' : 
+                          'bg-emerald-500'
+                        }`} 
+                      />
                 </div>
                 </div>
              </div>
@@ -212,7 +220,9 @@ const Budgets: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {loading ? (
-              <div className="col-span-full py-10 flex flex-col items-center gap-3 text-slate-400"><Loader2 className="animate-spin" size={24} /><p className="text-[10px] font-black uppercase tracking-widest">Sinkronisasi...</p></div>
+              [1,2,3,4].map(i => (
+                <div key={i} className="bg-white border border-slate-100 p-8 rounded-[36px] shadow-sm h-64 skeleton" />
+              ))
             ) : budgets.length === 0 ? (
               <div className="col-span-full py-16 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center gap-4 text-center"><p className="text-slate-400 font-bold text-sm">Belum ada budget {activeTab.toLowerCase()}.</p></div>
             ) : (
@@ -236,8 +246,16 @@ const Budgets: React.FC = () => {
                            <span className={progress > 100 ? "text-rose-500" : "text-slate-900"}>{formatCurrency(budget.spent)}</span>
                            <span className="text-slate-400">{formatCurrency(budget.amount)}</span>
                         </div>
-                        <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
-                           <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(progress, 100)}%` }} className={`h-full rounded-full ${progress > 100 ? 'bg-rose-500' : progress > 80 ? 'bg-amber-500' : 'bg-violet-600'}`} />
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                           <motion.div 
+                            initial={{ width: 0 }} 
+                            animate={{ width: `${Math.min(progress, 100)}%` }} 
+                            className={`h-full rounded-full transition-colors duration-500 ${
+                              progress >= 100 ? 'bg-rose-500' : 
+                              progress > 80 ? 'bg-amber-500' : 
+                              'bg-emerald-500'
+                            }`} 
+                           />
                         </div>
                      </div>
                   </motion.div>

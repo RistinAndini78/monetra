@@ -17,7 +17,9 @@ import {
   History,
   ShieldAlert,
   Globe,
-  BellRing
+  BellRing,
+  Moon,
+  Sun
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -33,6 +35,8 @@ interface SidebarProps {
   setUserRole: (role: "user" | "admin") => void;
   onLogout: () => void;
   userName?: string;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const userNavigation = [
@@ -74,7 +78,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   userRole,
   onLogout,
-  userName
+  userName,
+  isDarkMode,
+  toggleDarkMode
 }) => {
   const navigation = userRole === "user" ? userNavigation : adminNavigation;
 
@@ -92,49 +98,58 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </AnimatePresence>
 
-      <aside
-        className={`fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-100 flex flex-col z-[70] shadow-xl lg:shadow-none transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-      >
-        <div className="p-8 flex items-center justify-between">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform">
-              <span className="text-white font-black text-xl">M</span>
+        <aside
+          className={`fixed inset-y-0 left-0 w-72 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} border-r flex flex-col z-[70] shadow-xl lg:shadow-none transition-all duration-500 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        >
+          <div className="p-8 flex items-center justify-between">
+            <div className="flex items-center gap-3 group cursor-pointer">
+              <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform">
+                <span className="text-white font-black text-xl">M</span>
+              </div>
+              <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Monetra</span>
             </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">Monetra</span>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-xl transition-all ${isDarkMode ? 'bg-slate-700 text-amber-400 hover:bg-slate-600' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                title={isDarkMode ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap"}
+              >
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <button onClick={onClose} className="p-2 lg:hidden text-slate-400 hover:text-slate-900 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 lg:hidden text-slate-400 hover:text-slate-900 transition-colors">
-            <X size={24} />
-          </button>
-        </div>
 
-        <div className="px-6 mb-6">
-          <div className="bg-slate-50 border border-slate-100 p-4 rounded-3xl flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-slate-100/50">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0 z-10 bg-indigo-500">
-              <img 
-                src={
-                  (userName?.toLowerCase().match(/(i|a)$/) || userName?.toLowerCase().match(/(putri|sari|ayu|dewi|andini|rina|maya|fitri|lestari|indah|amalia)/)) 
-                  ? femaleAvatar 
-                  : maleAvatar
-                } 
-                alt="Profil" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="overflow-hidden z-10">
-              <p className="text-sm font-black text-slate-900 truncate">
-                {userName || 'Pengguna'}
-              </p>
-              {userRole === 'admin' && (
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
-                    Administrator
-                  </p>
-                </div>
-              )}
+          <div className="px-6 mb-6">
+            <div className={`${isDarkMode ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-100'} border p-4 rounded-3xl flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-opacity-80`}>
+              <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white/10 shadow-sm shrink-0 z-10 bg-indigo-500">
+                <img 
+                  src={
+                    (userName?.toLowerCase().match(/(i|a)$/) || userName?.toLowerCase().match(/(putri|sari|ayu|dewi|andini|rina|maya|fitri|lestari|indah|amalia)/)) 
+                    ? femaleAvatar 
+                    : maleAvatar
+                  } 
+                  alt="Profil" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="overflow-hidden z-10">
+                <p className={`text-sm font-black truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {userName || 'Pengguna'}
+                </p>
+                {userRole === 'admin' && (
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                      Administrator
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
           <div className="px-4 space-y-6">

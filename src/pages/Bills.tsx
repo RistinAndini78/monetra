@@ -20,7 +20,6 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
 import { format, parseISO } from "date-fns";
-import EmailService from "../lib/emailService";
 
 interface Bill {
   id: string;
@@ -100,13 +99,6 @@ const Bills: React.FC = () => {
             message: `Tagihan "${bill.name}" sebesar ${formatCurrency(bill.amount)} jatuh tempo HARI INI.`,
             type: 'warning'
           }]);
-
-          // Kirim email
-          await EmailService.sendBillReminder(userData.user?.email || '', {
-            billName: bill.name,
-            dueDate: 'HARI INI',
-            amount: bill.amount
-          }).catch(e => console.error("Email gagal:", e));
         }
       }
     } catch (err) { console.error("checkDueBills error:", err); }
@@ -193,18 +185,7 @@ const Bills: React.FC = () => {
 
       if (billError) throw billError;
 
-      // 5. Kirim Notifikasi Email
-      try {
-        await EmailService.sendPaymentConfirmation(userData.user?.email || '', {
-          billName: bill.name,
-          amount: bill.amount,
-          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-        });
-      } catch (emailErr) {
-        console.error("Gagal mengirim email konfirmasi", emailErr);
-      }
-
-      alert("Tagihan berhasil dibayar! Email konfirmasi telah dikirim.");
+      alert("Tagihan berhasil dibayar!");
       fetchBills();
     } catch (err: any) {
       alert("Gagal membayar tagihan: " + err.message);

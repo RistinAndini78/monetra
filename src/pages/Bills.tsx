@@ -214,31 +214,32 @@ const Bills: React.FC = () => {
   const upcomingCount = bills.filter(b => b.status === 'upcoming').length;
 
   return (
-    <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20 relative">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  return (
+    <div className="px-4 py-6 sm:p-10 space-y-6 sm:space-y-10 max-w-[1400px] mx-auto w-full pb-24 relative">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">Notifikasi & Tagihan</h2>
-          <p className="text-slate-400 font-medium">Pantau semua pengingat dan kewajiban pembayaran Anda.</p>
+          <p className="text-slate-400 font-medium text-[11px] mt-1">Pantau semua pengingat dan kewajiban pembayaran Anda.</p>
         </div>
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setShowModal(true)}
-            className="bg-violet-600 text-white px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-violet-700 active:scale-95 transition-all shadow-xl shadow-violet-600/20"
+            className="flex-1 sm:flex-none bg-violet-600 text-white px-6 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-violet-700 active:scale-95 transition-all shadow-xl shadow-violet-600/20"
           >
             <Plus size={20} />
-            <span>Tambah Tagihan Baru</span>
+            <span className="text-xs">Tambah Tagihan Baru</span>
           </button>
         </div>
       </header>
 
       {/* Ringkasan Statistik */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         {[
           { label: "Sisa Kewajiban", value: formatCurrency(totalKewajiban), trend: `${bills.filter(b => b.status !== 'paid').length} Belum Dibayar`, color: "text-slate-900" },
           { label: "Tagihan Mendatang", value: `${upcomingCount} Tagihan`, trend: "Perlu disiapkan", color: "text-rose-500" },
           { label: "Sudah Dibayar", value: formatCurrency(bills.filter(b => b.status === 'paid').reduce((a, c) => a + c.amount, 0)), trend: "Bulan ini", color: "text-emerald-500" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between h-[160px]">
+          <div key={i} className={`bg-white p-6 sm:p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between h-[140px] sm:h-[160px] ${i === 2 ? 'sm:col-span-2 lg:col-span-1' : ''}`}>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
             <div>
               <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
@@ -250,7 +251,7 @@ const Bills: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Kalender / Daftar Tagihan */}
-        <div className="lg:col-span-8 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+        <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-[40px] border border-slate-100 shadow-sm">
            <h3 className="text-lg font-black text-slate-900 mb-6">Daftar Tagihan Aktif</h3>
            
            {loading ? (
@@ -260,26 +261,26 @@ const Bills: React.FC = () => {
              </div>
            ) : bills.length === 0 ? (
              <div className="flex flex-col items-center py-20 border-2 border-dashed border-slate-50 rounded-[32px]">
-                <p className="text-slate-400 font-bold">Belum ada tagihan.</p>
+                <p className="text-slate-400 font-bold text-sm">Belum ada tagihan.</p>
              </div>
            ) : (
-             <div className="space-y-6">
+             <div className="space-y-4">
                 {bills.map((bill) => (
-                  <div key={bill.id} className={`flex items-center justify-between p-6 rounded-[32px] border transition-all group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
-                     <div className="flex items-center gap-6">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
+                  <div key={bill.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 rounded-[32px] border transition-all gap-4 sm:gap-6 group ${bill.status === 'paid' ? 'bg-[#F2FBF9] border-[#E6F6F2]' : 'bg-slate-50/50 border-slate-100 hover:border-violet-100'}`}>
+                     <div className="flex items-center gap-4 sm:gap-6">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0 ${bill.status === 'paid' ? 'bg-[#10B981] text-white' : 'bg-white text-violet-600'}`}>
                            {bill.status === 'paid' ? <CheckCircle2 size={20} /> : <CreditCard size={20} />}
                         </div>
-                        <div>
-                           <h4 className={`text-sm font-black ${bill.status === 'paid' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{bill.name}</h4>
+                        <div className="min-w-0">
+                           <h4 className={`text-sm font-black truncate ${bill.status === 'paid' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{bill.name}</h4>
                            <p className={`text-[9px] font-bold uppercase tracking-widest ${bill.status === 'paid' ? 'text-[#10B981]' : 'text-slate-400'}`}>
                              {bill.status === 'paid' ? 'LUNAS' : `TEMPO: ${format(parseISO(bill.due_date), 'dd MMM yyyy')}`}
                            </p>
                         </div>
                      </div>
-                     <div className="flex items-center gap-10">
-                        <div className="text-right">
-                           <p className="text-base font-black text-slate-900">{formatCurrency(bill.amount)}</p>
+                     <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-10 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100 sm:border-transparent">
+                        <div className="text-left sm:text-right">
+                           <p className="text-sm sm:text-base font-black text-slate-900 tabular-nums">{formatCurrency(bill.amount)}</p>
                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{bill.category}</p>
                         </div>
                         
@@ -294,8 +295,8 @@ const Bills: React.FC = () => {
                                <span>Bayar</span>
                              </button>
                            )}
-                           <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-all">
-                              <Trash2 size={20} />
+                           <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-all">
+                              <Trash2 size={18} />
                            </button>
                         </div>
                      </div>

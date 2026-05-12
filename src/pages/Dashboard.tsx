@@ -409,11 +409,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
          <div className="flex items-end justify-between mb-8">
           <h2 className="text-xl font-black text-slate-900 tracking-tight">Transaksi Terbaru</h2>
           <button 
-            onClick={() => {
-              // Trigger tab change via App state or just scroll/refresh if handled
-              const tabBtn = document.querySelector('[data-tab="Transactions"]') as HTMLButtonElement;
-              if (tabBtn) tabBtn.click();
-            }}
+            onClick={onViewAll}
             className="text-[10px] font-black text-violet-600 hover:text-violet-700 transition-colors uppercase tracking-[0.2em]"
           >
             Lihat Semua

@@ -94,7 +94,7 @@ const Transactions: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
 
-      let proofUrl = null;
+      let proofUrl = newTx.proof_url;
       if (selectedImage) {
         const fileExt = selectedImage.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -113,41 +113,36 @@ const Transactions: React.FC = () => {
         proofUrl = publicUrl;
       }
 
-      const { error } = await supabase.from('transactions').insert([{
-        description: newTx.judul, 
-        catatan: newTx.catatan || null, 
-        category: newTx.category, 
-        amount: Number(newTx.amount), 
-        type: newTx.type, 
-        date: newTx.date, 
-        user_id: userId,
-        proof_url: proofUrl
-      }]);
-      if (error) throw error;
-      
-      // Send push notification
-      PushNotificationService.sendTransactionAlert(
-        newTx.type,
-        Number(newTx.amount),
-        newTx.category
-      );
+      const transactionData = {
+        description: newTx.judul,
+        amount: Number(newTx.amount),
+        category: newTx.category,
+        type: newTx.type,
+        date: newTx.date,
+        catatan: newTx.catatan,
+        proof_url: proofUrl,
+        user_id: userId
+      };
 
-      // Jalankan proses notifikasi di background agar tidak menghambat UI
-      Promise.all([
-        PushNotificationService.sendTransactionAlert(
-          newTx.type,
-          Number(newTx.amount),
-          newTx.category
-        ),
-        supabase.from('notifications').insert([{
-          user_id: userId,
-          title: newTx.type === 'income' ? '💰 Pemasukan Baru' : '💸 Pengeluaran Baru',
-          message: `Transaksi "${newTx.judul}" sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(newTx.amount))} telah dicatat.`,
-          type: 'success'
-        }])
-      ]).catch(e => console.error("Background task failed", e));
+      if (editingId) {
+        // Update Transaksi Lama
+        const { error } = await supabase
+          .from('transactions')
+          .update(transactionData)
+          .eq('id', editingId);
+        if (error) throw error;
+        PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah diperbarui." });
+      } else {
+        // Tambah Transaksi Baru
+        const { error } = await supabase
+          .from('transactions')
+          .insert([transactionData]);
+        if (error) throw error;
+        PushNotificationService.sendNotification("Berhasil", { body: "Transaksi baru telah dicatat." });
+      }
 
       setIsModalOpen(false);
+      setEditingId(null);
       setNewTx({ judul: '', catatan: '', recipient: '', category: 'Makanan', amount: '', type: 'expense', date: new Date().toISOString().split('T')[0], proof_url: '' });
       setSelectedImage(null);
       setImagePreview(null);

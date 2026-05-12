@@ -93,7 +93,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </AnimatePresence>
 
         <aside
-          className="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-100 flex flex-col z-[70] shadow-xl lg:shadow-none transition-transform duration-500 ease-in-out"
+          className={`fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-100 flex flex-col z-[70] shadow-2xl lg:shadow-none transition-transform duration-500 ease-in-out ${
+            isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
         >
           <div className="p-8 flex items-center justify-between">
             <div className="flex items-center gap-3 group cursor-pointer">

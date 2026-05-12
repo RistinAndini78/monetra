@@ -32,6 +32,7 @@ interface SidebarProps {
   userRole: "user" | "admin";
   onLogout: () => void;
   userName?: string;
+  avatarUrl?: string;
 }
 
 const userNavigation = [
@@ -66,14 +67,10 @@ const adminNavigation = [
   ]}
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  activeTab, 
-  setActiveTab, 
-  isOpen, 
-  onClose,
   userRole,
   onLogout,
-  userName
+  userName,
+  avatarUrl
 }) => {
   const navigation = userRole === "user" ? userNavigation : adminNavigation;
 
@@ -108,10 +105,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="px-6 mb-6">
             <div className="bg-slate-50 border border-slate-100 p-4 rounded-3xl flex items-center gap-3 group relative overflow-hidden transition-all hover:bg-slate-100/50">
-              <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm shrink-0 z-10 bg-violet-600 flex items-center justify-center">
-                <span className="text-white font-black text-xl uppercase">
-                  {userName?.charAt(0) || 'P'}
-                </span>
+              <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm shrink-0 z-10 bg-violet-600 flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-black text-xl uppercase">
+                    {userName?.charAt(0) || 'P'}
+                  </span>
+                )}
               </div>
               <div className="overflow-hidden z-10">
                 <p className="text-sm font-black text-slate-900 truncate">

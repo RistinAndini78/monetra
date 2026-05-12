@@ -24,6 +24,7 @@ const App = () => {
           id: session.user.id,
           email: session.user.email,
           name: session.user.user_metadata.name || session.user.email,
+          avatarUrl: session.user.user_metadata.avatar_url
         });
       }
     });
@@ -34,6 +35,7 @@ const App = () => {
           id: session.user.id,
           email: session.user.email,
           name: session.user.user_metadata.name || session.user.email,
+          avatarUrl: session.user.user_metadata.avatar_url
         });
       } else {
         setUser(null);
@@ -59,6 +61,7 @@ const App = () => {
         id: session.user.id,
         email: session.user.email,
         name: session.user.user_metadata.name || session.user.email,
+        avatarUrl: session.user.user_metadata.avatar_url
       });
     }
   };
@@ -96,6 +99,7 @@ const App = () => {
         userRole="user"
         onLogout={handleLogout}
         userName={user?.name}
+        avatarUrl={user?.avatarUrl}
       />
 
       <div className="flex-1 lg:ml-72 flex flex-col min-h-screen">

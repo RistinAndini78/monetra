@@ -95,10 +95,12 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
       const { data: { publicUrl } } = supabase.storage
         .from('transaction-proofs')
         .getPublicUrl(filePath);
+      
+      const finalUrl = `${publicUrl}?t=${new Date().getTime()}`;
 
       // Simpan URL ke user_metadata
-      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-      setProfileImage(publicUrl);
+      await supabase.auth.updateUser({ data: { avatar_url: finalUrl } });
+      setProfileImage(finalUrl);
       onUserUpdate?.();
     } catch (err: any) {
       console.error('Upload gagal:', err);

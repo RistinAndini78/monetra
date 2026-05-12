@@ -428,12 +428,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
                  </p>
               </div>
             ))}
-            <button onClick={() => window.location.hash = '#transactions'} className="border-2 border-dashed border-slate-200 rounded-[32px] flex flex-col items-center justify-center gap-3 p-8 text-slate-400 hover:border-violet-200 hover:text-violet-600 transition-all group">
-               <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center group-hover:bg-violet-50 transition-all">
-                  <Plus size={20} />
-               </div>
-               <span className="text-[10px] font-black uppercase tracking-widest">Input Baru</span>
-            </button>
+            {recentTransactions.length === 0 && (
+            <div className="w-full py-12 bg-slate-50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
+              <p className="text-slate-400 font-bold text-sm">Belum ada transaksi tercatat.</p>
+            </div>
+          )}
          </div>
       </div>
 

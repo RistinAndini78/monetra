@@ -162,10 +162,37 @@ const Transactions: React.FC = () => {
   const handleDeleteTransaction = async (id: string) => {
     if (!confirm("Hapus transaksi ini?")) return;
     try {
+      setIsSubmitting(true);
       const { error } = await supabase.from('transactions').delete().eq('id', id);
       if (error) throw error;
+      
+      // Update state secara manual agar instan di layar
+      setDbTransactions(prev => prev.filter(t => t.id !== id));
+      
+      // Re-fetch untuk sinkronisasi total saldo dll
       fetchTransactions();
-    } catch (err) { console.error(err); }
+      
+      PushNotificationService.sendNotification("Berhasil", { body: "Transaksi telah dihapus." });
+    } catch (err: any) {
+      console.error("Error deleting transaction:", err);
+      alert("Gagal menghapus: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditTransaction = (tx: Transaction) => {
+    setNewTx({
+      type: tx.type,
+      amount: tx.amount.toString(),
+      category: tx.category,
+      judul: tx.name,
+      catatan: tx.catatan || "",
+      date: tx.date,
+      recipient: '',
+      proof_url: tx.proof_url || ''
+    });
+    setIsModalOpen(true);
   };
 
   const handleExportTransactions = () => {
@@ -365,8 +392,6 @@ const Transactions: React.FC = () => {
           <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 py-3"><Plus size={18} /> <span>Tambah</span></button>
         </div>
       </header>
-
-
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">

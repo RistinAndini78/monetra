@@ -1,12 +1,10 @@
-import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
-    react(), 
-    tailwindcss(),
+    react(),
   ],
   base: '/',
   resolve: {
@@ -16,6 +14,5 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    chunkSizeWarningLimit: 1600,
   }
 });

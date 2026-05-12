@@ -163,7 +163,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
 
   const menuItems = [
     { name: "Informasi Pribadi", icon: <User size={18} /> },
-    { name: "Keamanan & Privasi", icon: <Lock size={18} /> },
   ];
 
   const renderSubContent = () => {
@@ -407,57 +406,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
             </AnimatePresence>
           </div>
         );
-      case "Keamanan & Privasi":
-        return (
-          <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight mb-10">Pengaturan Keamanan</h3>
-            <div className="space-y-8">
-               {[
-                 { title: "Autentikasi Dua Faktor", desc: "Tambahkan lapisan keamanan ekstra ke akun Anda.", status: "Aktif", type: "toggle" },
-                 { title: "Mode Privasi", desc: "Sembunyikan saldo dan detail transaksi di dasbor Anda.", status: "Nonaktif", type: "toggle" },
-                 { title: "Notifikasi Email", desc: "Kirim pengingat tagihan dan konfirmasi pembayaran ke email Anda.", status: "Aktif", type: "toggle" },
-                 { title: "Manajemen Sesi", desc: "Pantau di mana Anda telah masuk.", status: "Aktif", type: "button" },
-               ].map(item => (
-                 <div key={item.title} className="flex items-center justify-between p-6 bg-[#F8F9FB] rounded-3xl group">
-                    <div>
-                       <h4 className="text-base font-black text-slate-900">{item.title}</h4>
-                       <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-wider">{item.desc}</p>
-                    </div>
-                    {item.type === 'toggle' ? (
-                      <div className={`w-14 h-8 ${item.status === 'Aktif' ? 'bg-violet-600' : 'bg-slate-200'} rounded-full p-1 relative cursor-pointer`}>
-                         <div className={`w-6 h-6 bg-white rounded-full shadow-md ${item.status === 'Aktif' ? 'translate-x-6' : 'translate-x-0'} transition-transform`} />
-                      </div>
-                    ) : (
-                      <button className="text-violet-600 font-black text-[10px] uppercase tracking-widest hover:underline">Kelola</button>
-                    )}
-                 </div>
-               ))}
-               
-               <div className="pt-10 space-y-6">
-                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Kekuatan Kata Sandi</h4>
-                  <div className="flex gap-2">
-                     <div className="h-2 flex-1 bg-violet-600 rounded-full" />
-                     <div className="h-2 flex-1 bg-violet-600 rounded-full" />
-                     <div className="h-2 flex-1 bg-violet-600 rounded-full" />
-                     <div className="h-2 flex-1 bg-slate-100 rounded-full" />
-                  </div>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Terakhir diubah: baru saja</p>
-                  <button 
-                    onClick={async () => {
-                      const { error } = await supabase.auth.resetPasswordForEmail(userEmail || '');
-                      if (error) alert("Gagal: " + error.message);
-                      else alert("Link reset password telah dikirim ke email Anda!");
-                    }}
-                    className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-xs hover:bg-slate-800 transition-all uppercase tracking-widest"
-                  >
-                    Ubah Kata Sandi
-                  </button>
-               </div>
-            </div>
-          </div>
-        );
-
-
     }
   };
 
@@ -493,12 +441,6 @@ const Settings: React.FC<SettingsProps> = ({ userName = "User", userEmail = "use
             ))}
           </div>
           
-          <div className="mt-8 bg-rose-50/50 p-8 rounded-[40px] border border-rose-100 text-center">
-             <h4 className="text-sm font-black text-rose-500 uppercase tracking-widest mb-4">Zona Bahaya</h4>
-             <button className="text-[10px] font-black text-rose-400 hover:text-rose-600 transition-colors uppercase tracking-widest hover:underline">
-               Hapus Akun
-             </button>
-          </div>
         </div>
 
         {/* Area Konten */}

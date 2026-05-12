@@ -407,7 +407,7 @@ const Transactions: React.FC = () => {
   };
 
   return (
-    <div className="p-6 sm:p-10 space-y-10 max-w-[1400px] mx-auto w-full pb-20">
+    <div className="px-4 py-6 sm:p-10 space-y-6 sm:space-y-10 max-w-[1400px] mx-auto w-full pb-24">
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -538,18 +538,18 @@ const Transactions: React.FC = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Masuk</p>
-          <p className="text-xl font-black text-emerald-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white border border-slate-100 p-5 rounded-[32px] shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Masuk</p>
+          <p className="text-lg font-black text-emerald-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome)}</p>
         </div>
-        <div className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Keluar</p>
-          <p className="text-xl font-black text-rose-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalExpense)}</p>
+        <div className="bg-white border border-slate-100 p-5 rounded-[32px] shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Keluar</p>
+          <p className="text-lg font-black text-rose-500 tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalExpense)}</p>
         </div>
-        <div className="bg-violet-600 p-6 rounded-[32px] shadow-lg shadow-violet-600/20 text-white">
-          <p className="text-[10px] font-black text-violet-200 uppercase tracking-widest mb-1 text-center">Selisih Kas</p>
-          <p className="text-xl font-black text-white tabular-nums text-center">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome - totalExpense)}</p>
+        <div className="bg-violet-600 p-5 rounded-[32px] shadow-lg shadow-violet-600/20 text-white sm:col-span-2 lg:col-span-1">
+          <p className="text-[9px] font-black text-violet-200 uppercase tracking-widest mb-1 text-center">Selisih Kas</p>
+          <p className="text-lg font-black text-white tabular-nums text-center">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalIncome - totalExpense)}</p>
         </div>
       </div>
 

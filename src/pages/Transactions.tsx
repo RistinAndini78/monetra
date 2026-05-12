@@ -583,74 +583,119 @@ const Transactions: React.FC = () => {
             <p className="text-slate-900 font-black text-lg">Kosong Melompong</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/50 border-b border-slate-100">
-                <tr>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Jumlah</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredTransactions.map((tx) => (
-                  <tr key={tx.id} className="group hover:bg-slate-50 transition-colors">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-                          {tx.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{tx.name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-[10px] text-slate-400">{format(new Date(tx.date), "dd MMM yyyy")}</p>
-                            {tx.proof_url && (
-                              <a href={tx.proof_url} target="_blank" rel="noreferrer" className="text-[10px] font-black text-violet-600 uppercase tracking-widest hover:underline flex items-center gap-1">
-                                • Lihat Bukti
-                              </a>
-                            )}
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Jumlah</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredTransactions.map((tx) => (
+                    <tr key={tx.id} className="group hover:bg-slate-50 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                            {tx.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{tx.name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-[10px] text-slate-400">{format(new Date(tx.date), "dd MMM yyyy")}</p>
+                              {tx.proof_url && (
+                                <a href={tx.proof_url} target="_blank" rel="noreferrer" className="text-[10px] font-black text-violet-600 uppercase tracking-widest hover:underline flex items-center gap-1">
+                                  • Lihat Bukti
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">{tx.category}</span>
+                      </td>
+                      <td className="px-8 py-6 text-right font-black text-sm tabular-nums">
+                        <p className={tx.type === 'income' ? "text-emerald-500" : "text-slate-900"}>
+                          {tx.type === 'income' ? "+" : "-"}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(tx.amount)}
+                        </p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleEditTransaction(tx); }} 
+                            className="p-2.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-violet-100 cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteTransaction(tx.id); }} 
+                            className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-rose-100 cursor-pointer"
+                            title="Hapus"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden divide-y divide-slate-50">
+              {filteredTransactions.map((tx) => (
+                <div key={tx.id} className="p-6 space-y-4 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                        {tx.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
                       </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">{tx.category}</span>
-                    </td>
-                    <td className="px-8 py-6 text-right font-black text-sm tabular-nums">
-                      <p className={tx.type === 'income' ? "text-emerald-500" : "text-slate-900"}>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{tx.name}</p>
+                        <p className="text-[10px] text-slate-400">{format(new Date(tx.date), "dd MMM yyyy")}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-black text-sm tabular-nums ${tx.type === 'income' ? "text-emerald-500" : "text-slate-900"}`}>
                         {tx.type === 'income' ? "+" : "-"}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(tx.amount)}
                       </p>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditTransaction(tx);
-                          }} 
-                          className="p-2.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-violet-100 cursor-pointer relative z-20"
-                          title="Edit Transaksi"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTransaction(tx.id);
-                          }} 
-                          className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-rose-100 cursor-pointer relative z-20"
-                          title="Hapus Transaksi"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <span className="px-2 py-0.5 bg-slate-100 rounded-md text-[9px] font-black text-slate-400 uppercase tracking-widest">{tx.category}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-50/50">
+                    <div className="flex gap-2">
+                      {tx.proof_url && (
+                        <a href={tx.proof_url} target="_blank" rel="noreferrer" className="text-[10px] font-black text-violet-600 uppercase tracking-widest flex items-center gap-1 bg-violet-50 px-2 py-1 rounded-lg">
+                          Bukti
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleEditTransaction(tx)} 
+                        className="p-2 text-slate-400 hover:text-violet-600 transition-colors"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteTransaction(tx.id)} 
+                        className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

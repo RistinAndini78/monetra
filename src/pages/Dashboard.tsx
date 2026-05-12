@@ -375,31 +375,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewAll, userName }) => {
             Lihat Semua
           </button>
         </div>
-         <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {transactions.map((tx, i) => (
-                <div key={i} className="bg-white border border-slate-100 p-8 rounded-[32px] shadow-sm space-y-6 group hover:border-violet-100 transition-all hover:shadow-xl hover:shadow-slate-200/20">
-                   <div className="flex justify-between items-start">
-                      <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                         {tx.type === 'income' ? 'Masuk' : 'Keluar'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">{format(new Date(tx.date), "dd MMM yyyy", { locale: id })}</span>
-                   </div>
-                   <div>
-                      <p className="text-sm font-black text-slate-900 mb-1 line-clamp-1">{tx.name || tx.category}</p>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{tx.category}</p>
-                   </div>
-                   <p className={`text-xl font-black tabular-nums ${tx.type === 'income' ? 'text-emerald-500' : 'text-slate-900'}`}>
-                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount).replace('Rp', 'Rp ')}
-                   </p>
-                </div>
-              ))}
-              {transactions.length === 0 && (
-              <div className="col-span-full py-12 bg-slate-50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
-                <p className="text-slate-400 font-bold text-sm">Belum ada transaksi tercatat.</p>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {transactions.slice(0, 4).map((tx, i) => (
+              <div key={i} className="bg-white border border-slate-100 p-8 rounded-[32px] shadow-sm space-y-6 group hover:border-violet-100 transition-all hover:shadow-xl hover:shadow-slate-200/20">
+                 <div className="flex justify-between items-start">
+                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                       {tx.type === 'income' ? 'Masuk' : 'Keluar'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">{format(new Date(tx.date), "dd MMM yyyy", { locale: id })}</span>
+                 </div>
+                 <div>
+                    <p className="text-sm font-black text-slate-900 mb-1 line-clamp-1">{tx.name || tx.category}</p>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{tx.category}</p>
+                 </div>
+                 <p className={`text-xl font-black tabular-nums ${tx.type === 'income' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount).replace('Rp', 'Rp ')}
+                 </p>
               </div>
-            )}
-           </div>
+            ))}
+            {transactions.length === 0 && (
+            <div className="col-span-full py-12 bg-slate-50 rounded-[40px] border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
+              <p className="text-slate-400 font-bold text-sm">Belum ada transaksi tercatat.</p>
+            </div>
+          )}
          </div>
       </div>
 
